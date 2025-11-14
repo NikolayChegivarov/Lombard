@@ -4,7 +4,7 @@ from django.forms import BaseInlineFormSet
 from django import forms
 from .models import Branch, WorkingHours
 
-
+#--------------------------РАСПИСАНИЕ----------------------------
 class WorkingHoursForm(forms.ModelForm):
     """Кастомная форма для времени с предустановленными значениями"""
 
@@ -181,7 +181,7 @@ class BranchAdmin(admin.ModelAdmin):
         """Оптимизация запросов"""
         return super().get_queryset(request).prefetch_related('working_hours')
 
-
+#--------------------------ФИЛИАЛЫ----------------------------
 @admin.register(WorkingHours)
 class WorkingHoursAdmin(admin.ModelAdmin):
     """Отдельная админка для режима работы"""

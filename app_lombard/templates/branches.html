@@ -1,8 +1,614 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Филиалы - Ломбард Народный{% endblock %}
 
 {% block content %}
-<h1>Наши филиалы</h1>
-<p>Информация о филиалах будет здесь...</p>
+<div class="branches-container">
+    <!-- Заголовок и статистика в одной строке -->
+    <div class="page-header">
+        <h1>Наши филиалы</h1>
+        <div class="header-stats">
+            <div class="header-stat">
+                <span class="stat-number">{{ total_branches }}</span>
+                <span class="stat-label">Филиалов</span>
+            </div>
+            <div class="header-stat">
+                <span class="stat-number">{{ active_branches }}</span>
+                <span class="stat-label">Открыто</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Карта -->
+    <div class="map-section">
+        <h2>Филиалы на карте</h2>
+        <div id="branches-map" class="branches-map"></div>
+    </div>
+
+    <!-- Список филиалов -->
+    <div class="branches-list">
+        <h2>Список филиалов</h2>
+
+        <div class="branches-grid">
+            {% for branch in branches %}
+            <div class="branch-compact-card" data-branch-id="{{ forloop.counter }}">
+                <div class="branch-compact-main">
+                    <div class="branch-location">
+                        <span class="location-icon">📍</span>
+                        <div class="location-info">
+                            <span class="branch-city">{{ branch.city }}, </span>
+                            <span class="branch-address">{{ branch.address }}</span>
+                        </div>
+                    </div>
+                    <div class="branch-toggle">
+                        <span class="toggle-icon">▼</span>
+                    </div>
+                </div>
+
+                <!-- Дополнительная информация (скрыта по умолчанию) -->
+                <div class="branch-additional-info" id="branch-info-{{ forloop.counter }}">
+                    <!-- Первая строка: телефон, кнопка карты, статус -->
+                    <div class="info-row first-row">
+                        <div class="phone-info">
+                            <span class="info-icon">📞</span>
+                            <span class="phone-number">{{ branch.phone }}</span>
+                        </div>
+                        <div class="actions-status">
+                            {% if branch.latitude and branch.longitude %}
+                            <button class="map-btn"
+                                    data-lat="{{ branch.latitude }}"
+                                    data-lng="{{ branch.longitude }}"
+                                    data-title="{{ branch.city }}">
+                                🗺️ На карте
+                            </button>
+                            {% endif %}
+                            <div class="status-indicator status-{{ branch.status_color }}">
+                                {% if branch.is_open_now %}🟢{% else %}🔴{% endif %}
+                                {{ branch.status_text }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Вторая строка: расписание -->
+                    <div class="schedule-compact">
+                        <div class="schedule-days">
+                            {% for day in branch.schedule %}
+                            <div class="schedule-day-compact {% if day.is_closed %}closed{% endif %}">
+                                <span class="day-abbr">
+                                    {% if day.day == "Понедельник" %}Пн
+                                    {% elif day.day == "Вторник" %}Вт
+                                    {% elif day.day == "Среда" %}Ср
+                                    {% elif day.day == "Четверг" %}Чт
+                                    {% elif day.day == "Пятница" %}Пт
+                                    {% elif day.day == "Суббота" %}Сб
+                                    {% elif day.day == "Воскресенье" %}Вс
+                                    {% else %}{{ day.day }}{% endif %}
+                                </span>
+                                <span class="time-compact">{{ day.time|default:"--:--" }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-branches">
+                <div class="no-branches-icon">🏢</div>
+                <p>Нет активных филиалов для отображения</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Стили -->
+<style>
+.branches-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ЗАГОЛОВОК И СТАТИСТИКА - ОБНОВЛЕНО */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.page-header h1 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 2.2em;
+    font-weight: 700;
+}
+
+.header-stats {
+    display: flex;
+    gap: 15px;
+}
+
+.header-stat {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    color: white;
+    min-width: 120px;
+    height: 50px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.header-stat .stat-number {
+    font-size: 1.5em;
+    font-weight: bold;
+}
+
+.header-stat .stat-label {
+    font-size: 0.9em;
+    opacity: 0.9;
+}
+
+/* Карта */
+.map-section {
+    margin: 40px 0;
+}
+
+.map-section h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+}
+
+.branches-map {
+    height: 400px;
+    width: 100%;
+    border-radius: 15px;
+    border: 1px solid #e1e5e9;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+/* Компактные карточки филиалов */
+.branches-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.branch-compact-card {
+    background: white;
+    border: 1px solid #e8ecef;
+    border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.branch-compact-card:hover {
+    border-color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.branch-compact-card.active {
+    border-color: #667eea;
+    background: #f8faff;
+}
+
+.branch-compact-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    min-height: 60px;
+}
+
+.branch-location {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.location-icon {
+    font-size: 1.2em;
+    color: #667eea;
+}
+
+.location-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.branch-city {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1em;
+}
+
+.branch-address {
+    color: #6c757d;
+    font-size: 0.9em;
+}
+
+.branch-toggle {
+    color: #6c757d;
+    transition: transform 0.3s ease;
+    padding: 5px;
+}
+
+.branch-compact-card.active .branch-toggle {
+    transform: rotate(180deg);
+    color: #667eea;
+}
+
+/* Дополнительная информация */
+.branch-additional-info {
+    display: none;
+    border-top: 1px solid #e8ecef;
+    background: #fafbfc;
+}
+
+.branch-compact-card.active .branch-additional-info {
+    display: block;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 200px;
+    }
+}
+
+.info-row {
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.first-row {
+    border-bottom: 1px solid #e8ecef;
+    padding-bottom: 12px;
+}
+
+.second-row {
+    padding-top: 12px;
+}
+
+.phone-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-icon {
+    font-size: 1em;
+}
+
+.phone-number {
+    color: #2c3e50;
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.actions-status {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.map-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
+}
+
+.map-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8em;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.status-green {
+    background: #e8f5e8;
+    color: #27ae60;
+}
+
+.status-red {
+    background: #ffeaea;
+    color: #e74c3c;
+}
+
+/* Компактное расписание */
+.schedule-compact {
+    padding: 15px 20px;
+}
+
+.schedule-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    width: 100%;
+}
+
+.schedule-day-compact {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 4px;
+    border-radius: 6px;
+    background: white;
+    border: 1px solid #e8ecef;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.schedule-day-compact:hover {
+    border-color: #667eea;
+    transform: translateY(-1px);
+}
+
+.schedule-day-compact.closed {
+    background: #ffeaea;
+    border-color: #f5b7b1;
+    color: #e74c3c;
+}
+
+.day-abbr {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 4px;
+    font-size: 0.8em;
+}
+
+.schedule-day-compact.closed .day-abbr {
+    color: #e74c3c;
+}
+
+.time-compact {
+    color: #6c757d;
+    font-size: 0.75em;
+    line-height: 1.2;
+}
+
+.schedule-day-compact.closed .time-compact {
+    color: #e74c3c;
+}
+
+/* Нет филиалов */
+.no-branches {
+    text-align: center;
+    padding: 60px 40px;
+    color: #6c757d;
+    background: #f8f9fa;
+    border-radius: 15px;
+    border: 2px dashed #dee2e6;
+    grid-column: 1 / -1;
+}
+
+.no-branches-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .header-stats {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .header-stat {
+        flex: 1;
+        justify-content: center;
+        min-width: 100px;
+        height: 45px;
+        padding: 10px 15px;
+    }
+
+    .info-row {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .actions-status {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .schedule-days {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .branches-map {
+        height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-stats {
+        flex-direction: row;
+        gap: 10px;
+    }
+
+    .header-stat {
+        min-width: 90px;
+        height: 40px;
+        padding: 8px 12px;
+    }
+
+    .header-stat .stat-number {
+        font-size: 1.3em;
+    }
+
+    .header-stat .stat-label {
+        font-size: 0.8em;
+    }
+
+    .branch-compact-main {
+        padding: 12px 15px;
+    }
+
+    .info-row {
+        padding: 10px 15px;
+    }
+
+    .schedule-compact {
+        padding: 12px 15px;
+    }
+
+    .schedule-days {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .schedule-day-compact {
+        padding: 10px 4px;
+    }
+
+    .day-abbr {
+        font-size: 0.85em;
+    }
+
+    .time-compact {
+        font-size: 0.8em;
+    }
+}
+
+@media (max-width: 360px) {
+    .schedule-days {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+}
+</style>
+
+<!-- JavaScript -->
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const branchesData = {{ branches_json|safe }};
+
+    // Инициализация карты
+    ymaps.ready(initMap);
+
+    function initMap() {
+        var myMap = new ymaps.Map('branches-map', {
+            center: [55.76, 37.64],
+            zoom: 10
+        });
+
+        var clusterer = new ymaps.Clusterer();
+
+        branchesData.forEach(function(branch, index) {
+            var placemark = new ymaps.Placemark(
+                [branch.latitude, branch.longitude],
+                {
+                    balloonContent: `
+                        <div style="padding: 10px; min-width: 200px;">
+                            <h3 style="margin: 0 0 10px 0;">${branch.city}</h3>
+                            <p><strong>📍 Адрес:</strong> ${branch.address}</p>
+                            <p><strong>📞 Телефон:</strong> ${branch.phone}</p>
+                            <p><strong>🕒 Статус:</strong> <span style="color: ${branch.status_color}">${branch.status_text}</span></p>
+                        </div>
+                    `
+                },
+                {
+                    preset: 'islands#icon',
+                    iconColor: branch.is_open_now ? 'green' : 'red'
+                }
+            );
+
+            clusterer.add(placemark);
+        });
+
+        myMap.geoObjects.add(clusterer);
+
+        if (branchesData.length > 0) {
+            myMap.setBounds(clusterer.getBounds(), {
+                checkZoomRange: true
+            });
+        }
+
+        // Обработчики для кнопок "На карте"
+        document.querySelectorAll('.map-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation(); // Предотвращаем всплытие события
+                var lat = parseFloat(this.dataset.lat);
+                var lng = parseFloat(this.dataset.lng);
+                var title = this.dataset.title;
+
+                myMap.setCenter([lat, lng], 15, {
+                    duration: 1000
+                });
+
+                myMap.balloon.open([lat, lng], {
+                    content: `<h3>${title}</h3><p>📍 Выбранный филиал</p>`
+                });
+            });
+        });
+    }
+
+    // Переключение отображения дополнительной информации
+    document.querySelectorAll('.branch-compact-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+            const branchId = this.dataset.branchId;
+            const additionalInfo = document.getElementById(`branch-info-${branchId}`);
+
+            // Закрываем все открытые карточки
+            document.querySelectorAll('.branch-compact-card.active').forEach(function(activeCard) {
+                if (activeCard !== this) {
+                    activeCard.classList.remove('active');
+                }
+            }.bind(this));
+
+            // Переключаем текущую карточку
+            this.classList.toggle('active');
+        });
+    });
+});
+</script>
 {% endblock %}
