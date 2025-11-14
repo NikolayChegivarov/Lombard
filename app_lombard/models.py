@@ -15,6 +15,7 @@ class WorkingHours(models.Model):
         (6, 'Воскресенье'),
     ]
 
+    id = models.AutoField(primary_key=True, verbose_name='ID')
     branch = models.ForeignKey(
         'Branch',
         on_delete=models.CASCADE,
@@ -29,7 +30,7 @@ class WorkingHours(models.Model):
     class Meta:
         verbose_name = 'Режим работы'
         verbose_name_plural = 'Режимы работы'
-        ordering = ['day_of_week']
+        ordering = ['branch', 'day_of_week']
         unique_together = ['branch', 'day_of_week']
 
     def clean(self):
@@ -48,6 +49,7 @@ class WorkingHours(models.Model):
 
 class Branch(models.Model):
     """Филиалы"""
+    id = models.AutoField(primary_key=True, verbose_name='ID')
     city = models.CharField(max_length=100, verbose_name='Город')
     street = models.CharField(max_length=200, verbose_name='Улица')
     house = models.CharField(max_length=10, verbose_name='Дом')
@@ -67,6 +69,11 @@ class Branch(models.Model):
     latitude = models.FloatField(verbose_name='Широта')
     longitude = models.FloatField(verbose_name='Долгота')
 
+    class Meta:
+        verbose_name = 'Филиал'
+        verbose_name_plural = 'Филиалы'
+        ordering = ['city', 'street']
+
     def __str__(self):
         return f"{self.city}, {self.street}, {self.house}"
 
@@ -80,9 +87,6 @@ class Branch(models.Model):
 
     def is_open_now(self):
         """Проверяет, открыт ли филиал в текущий момент"""
-        from django.utils import timezone
-        import datetime
-
         now = timezone.now()
         today = now.weekday()
         current_time = now.time()
@@ -94,7 +98,3 @@ class Branch(models.Model):
             return today_hours.opening_time <= current_time <= today_hours.closing_time
         except WorkingHours.DoesNotExist:
             return False
-
-    class Meta:
-        verbose_name = 'Филиал'
-        verbose_name_plural = 'Филиалы'
