@@ -47,11 +47,12 @@ class WorkingHoursFormSet(BaseInlineFormSet):
 
         instance = kwargs.get('instance')
 
-        # Если это новый филиал (нет primary key) или у филиала нет расписания
-        if instance is None or instance.pk is None or not instance.working_hours.exists():
+        # Если это новый филиал (нет primary key)
+        if instance is None or instance.pk is None:
             # Создаем начальные данные для всех дней недели
             self.initial = [
-                {'day_of_week': day, 'is_closed': (day == 6)}
+                {'day_of_week': day, 'is_closed': False}
+                # 👈 Убрал (day == 6) - теперь все дни по умолчанию НЕ выходные
                 for day in range(7)
             ]
             self.extra = 7
@@ -67,15 +68,10 @@ class WorkingHoursInline(admin.TabularInline):
     can_delete = False
 
     def get_formset(self, request, obj=None, **kwargs):
-        """Автоматически создаем все дни недели для нового филиала или филиала без расписания"""
-        if obj is None or obj.pk is None or not obj.working_hours.exists():
+        """Автоматически создаем все дни недели для нового филиала"""
+        if obj is None or obj.pk is None:
             kwargs['formset'] = WorkingHoursFormSet
         return super().get_formset(request, obj, **kwargs)
-
-    def get_queryset(self, request):
-        """Сортируем дни недели по порядку"""
-        qs = super().get_queryset(request)
-        return qs.order_by('day_of_week')
 
 
 @admin.register(Branch)
@@ -123,30 +119,27 @@ class BranchAdmin(admin.ModelAdmin):
         }),
     )
 
-    def save_model(self, request, obj, form, change):
-        """Сначала сохраняем филиал, чтобы получить primary key"""
-        super().save_model(request, obj, form, change)
+    def save_related(self, request, form, formsets, change):
+        """Сохраняем связанные объекты (расписание)"""
+        # Сначала сохраняем филиал
+        super().save_related(request, form, formsets, change)
 
-        # После сохранения филиала создаем дни недели если их нет
-        if not obj.working_hours.exists():
-            for day in range(7):
-                WorkingHours.objects.create(
-                    branch=obj,
-                    day_of_week=day,
-                    is_closed=(day == 6)  # Воскресенье по умолчанию выходной
-                )
+        # Для нового филиала проверяем, создалось ли расписание
+        if not change:  # Если это создание нового филиала
+            branch = form.instance
 
-    def save_formset(self, request, form, formset, change):
-        """Обрабатываем сохранение расписания"""
-        instances = formset.save(commit=False)
-        branch = form.instance
+            # Удаляем возможные дубликаты, созданные формой
+            branch.working_hours.all().delete()
 
-        # Для каждого экземпляра устанавливаем branch и сохраняем
-        for instance in instances:
-            instance.branch = branch
-            instance.save()
-
-        formset.save_m2m()
+            # Создаем правильное расписание на основе данных из формы
+            for formset in formsets:
+                if formset.model == WorkingHours:
+                    instances = formset.save(commit=False)
+                    for instance in instances:
+                        # Проверяем, что это валидная запись (не пустая форма)
+                        if instance.day_of_week is not None:
+                            instance.branch = branch
+                            instance.save()
 
     def is_open_now_display(self, obj):
         """Отображение статуса открыт/закрыт в списке"""
