@@ -1,11 +1,67 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+from django.utils import timezone
+
+
+class WorkingHours(models.Model):
+    """Расписание"""
+    DAYS_OF_WEEK = [
+        (0, 'Понедельник'),
+        (1, 'Вторник'),
+        (2, 'Среда'),
+        (3, 'Четверг'),
+        (4, 'Пятница'),
+        (5, 'Суббота'),
+        (6, 'Воскресенье'),
+    ]
+
+    branch = models.ForeignKey(
+        'Branch',
+        on_delete=models.CASCADE,
+        related_name='working_hours',
+        verbose_name='Филиал'
+    )
+    day_of_week = models.IntegerField(choices=DAYS_OF_WEEK, verbose_name='День недели')
+    opening_time = models.TimeField(verbose_name='Время открытия', null=True, blank=True)
+    closing_time = models.TimeField(verbose_name='Время закрытия', null=True, blank=True)
+    is_closed = models.BooleanField(default=False, verbose_name='Выходной')
+
+    class Meta:
+        verbose_name = 'Режим работы'
+        verbose_name_plural = 'Режимы работы'
+        ordering = ['day_of_week']
+        unique_together = ['branch', 'day_of_week']
+
+    def clean(self):
+        if not self.is_closed:
+            if not self.opening_time or not self.closing_time:
+                raise ValidationError('Для рабочих дней необходимо указать время открытия и закрытия')
+            if self.opening_time >= self.closing_time:
+                raise ValidationError('Время открытия должно быть раньше времени закрытия')
+
+    def __str__(self):
+        if self.is_closed:
+            return f"{self.get_day_of_week_display()}: выходной"
+
+        return f"{self.get_day_of_week_display()}: {self.opening_time.strftime('%H:%M')} - {self.closing_time.strftime('%H:%M')}"
 
 
 class Branch(models.Model):
+    """Филиалы"""
     city = models.CharField(max_length=100, verbose_name='Город')
     street = models.CharField(max_length=200, verbose_name='Улица')
     house = models.CharField(max_length=10, verbose_name='Дом')
     phone = models.CharField(max_length=20, verbose_name='Телефон')
+    description = models.TextField(verbose_name="Описание", blank=True)
+    is_active = models.BooleanField(default=True, verbose_name="Активный")
+    created_at = models.DateTimeField(
+        default=timezone.now,
+        verbose_name="Дата создания"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата обновления"
+    )
 
     # Координаты - основа для карты
     latitude = models.FloatField(verbose_name='Широта')
@@ -13,6 +69,31 @@ class Branch(models.Model):
 
     def __str__(self):
         return f"{self.city}, {self.street}, {self.house}"
+
+    def get_working_hours_display(self):
+        """Возвращает отформатированное представление режима работы"""
+        hours = self.working_hours.all()
+        if not hours:
+            return "Режим работы не установлен"
+
+        return "\n".join(str(hour) for hour in hours)
+
+    def is_open_now(self):
+        """Проверяет, открыт ли филиал в текущий момент"""
+        from django.utils import timezone
+        import datetime
+
+        now = timezone.now()
+        today = now.weekday()
+        current_time = now.time()
+
+        try:
+            today_hours = self.working_hours.get(day_of_week=today)
+            if today_hours.is_closed:
+                return False
+            return today_hours.opening_time <= current_time <= today_hours.closing_time
+        except WorkingHours.DoesNotExist:
+            return False
 
     class Meta:
         verbose_name = 'Филиал'

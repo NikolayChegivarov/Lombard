@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - Ломбард Народный{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="quadrant-grid">
+    <!-- Левый верхний - Филиалы -->
+    <a href="{% url 'branches' %}" class="quadrant">
+        <img src="{% static 'branches.jpg' %}" alt="Филиалы" class="quadrant-image">
+    </a>
+    
+    <!-- Правый верхний - Цены -->
+    <a href="{% url 'prices' %}" class="quadrant">
+        <img src="{% static 'prices.jpg' %}" alt="Цены" class="quadrant-image">
+    </a>
+    
+    <!-- Левый нижний - Условия -->
+    <a href="{% url 'conditions' %}" class="quadrant">
+        <img src="{% static 'conditions.jpg' %}" alt="Условия" class="quadrant-image">
+    </a>
+    
+    <!-- Правый нижний - Вопросы и ответы -->
+    <a href="{% url 'questions_answers' %}" class="quadrant">
+        <img src="{% static 'questions_answers.jpg' %}" alt="Вопросы и ответы" class="quadrant-image">
+    </a>
+</div>
+{% endblock %}
