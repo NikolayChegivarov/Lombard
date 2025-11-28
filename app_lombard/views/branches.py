@@ -2,14 +2,16 @@ from django.shortcuts import render
 from ..models import Branch
 import json
 from django.utils import timezone
+from collections import defaultdict
 
 
 def branches_view(request):
     # Получаем все активные филиалы
     branches = Branch.objects.filter(is_active=True).prefetch_related('working_hours')
 
-    # Подготавливаем данные для карты
-    branches_data = []
+    # Группируем филиалы по городам
+    cities_dict = defaultdict(list)
+
     for branch in branches:
         # Получаем расписание для каждого филиала
         schedule = []
@@ -32,7 +34,7 @@ def branches_view(request):
         # Проверяем, открыт ли филиал сейчас
         is_open_now = branch.is_open_now()
 
-        branches_data.append({
+        branch_data = {
             'id': branch.id,
             'city': branch.city,
             'address': f"{branch.street}, {branch.house}",
@@ -44,16 +46,35 @@ def branches_view(request):
             'is_open_now': is_open_now,
             'status_color': 'green' if is_open_now else 'red',
             'status_text': 'Открыт' if is_open_now else 'Закрыт'
+        }
+
+        cities_dict[branch.city].append(branch_data)
+
+    # Формируем данные для городов
+    cities_data = []
+    for city, city_branches in cities_dict.items():
+        cities_data.append({
+            'city': city,
+            'branch_count': len(city_branches),
+            'branches': city_branches
         })
 
-    # Фильтруем филиалы с координатами для карты
-    branches_with_coords = [b for b in branches_data if b['latitude'] and b['longitude']]
+    # Сортируем города по алфавиту
+    cities_data.sort(key=lambda x: x['city'])
+
+    # Данные для JSON (для карт)
+    cities_json_data = []
+    for city_data in cities_data:
+        cities_json_data.append({
+            'city': city_data['city'],
+            'branches': [b for b in city_data['branches'] if b['latitude'] and b['longitude']]
+        })
 
     context = {
-        'branches': branches_data,
-        'branches_json': json.dumps(branches_with_coords, ensure_ascii=False),
-        'total_branches': len(branches_data),
-        'active_branches': len([b for b in branches_data if b['is_open_now']])
+        'cities': cities_data,
+        'cities_json': json.dumps(cities_json_data, ensure_ascii=False),
+        'total_branches': len(branches),
+        'active_branches': len([b for b in branches if b.is_open_now()])
     }
 
     return render(request, 'branches.html', context)

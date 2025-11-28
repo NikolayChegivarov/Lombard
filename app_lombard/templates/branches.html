@@ -20,72 +20,98 @@
         </div>
     </div>
 
-    <!-- Карта -->
-    <div class="map-section">
-        <h2>Филиалы на карте</h2>
-        <div id="branches-map" class="branches-map"></div>
-    </div>
-
-    <!-- Список филиалов -->
-    <div class="branches-list">
-        <h2>Список филиалов</h2>
-
-        <div class="branches-grid">
-            {% for branch in branches %}
-            <div class="branch-compact-card" data-branch-id="{{ forloop.counter }}">
-                <div class="branch-compact-main">
-                    <div class="branch-location">
-                        <span class="location-icon">📍</span>
-                        <div class="location-info">
-                            <span class="branch-city">{{ branch.city }}, </span>
-                            <span class="branch-address">{{ branch.address }}</span>
-                        </div>
-                    </div>
-                    <div class="branch-toggle">
-                        <span class="toggle-icon">▼</span>
-                    </div>
+    <!-- Блок городов -->
+    <div class="cities-section">
+        <h2>Города</h2>
+        <div class="cities-grid">
+            {% for city_data in cities %}
+            <div class="city-card" data-city="{{ city_data.city }}">
+                <div class="city-main">
+                    <span class="city-icon">🏙️</span>
+                    <span class="city-name">{{ city_data.city }}</span>
+                    <span class="city-branch-count">{{ city_data.branch_count }} филиал{{ city_data.branch_count|pluralize:"а,ов" }}</span>
                 </div>
+                <div class="city-toggle">
+                    <span class="toggle-icon">▼</span>
+                </div>
+            </div>
 
-                <!-- Дополнительная информация (скрыта по умолчанию) -->
-                <div class="branch-additional-info" id="branch-info-{{ forloop.counter }}">
-                    <!-- Первая строка: телефон, кнопка карты, статус -->
-                    <div class="info-row first-row">
-                        <div class="phone-info">
-                            <span class="info-icon">📞</span>
-                            <span class="phone-number">{{ branch.phone }}</span>
-                        </div>
-                        <div class="actions-status">
-                            {% if branch.latitude and branch.longitude %}
-                            <button class="map-btn"
-                                    data-lat="{{ branch.latitude }}"
-                                    data-lng="{{ branch.longitude }}"
-                                    data-title="{{ branch.city }}">
-                                🗺️ На карте
-                            </button>
-                            {% endif %}
-                            <div class="status-indicator status-{{ branch.status_color }}">
-                                {% if branch.is_open_now %}🟢{% else %}🔴{% endif %}
-                                {{ branch.status_text }}
-                            </div>
-                        </div>
+            <!-- Детали города (скрыты по умолчанию) -->
+            <div class="city-details" id="city-details-{{ forloop.counter }}">
+                <div class="city-content">
+                    <h3 class="city-title">Филиалы города {{ city_data.city }}</h3>
+
+                    <!-- Карта для города -->
+                    <div class="map-section city-map">
+                        <h4>Филиалы на карте</h4>
+                        <div id="city-map-{{ forloop.counter }}" class="branches-map city-branches-map"
+                             data-city="{{ city_data.city }}"></div>
                     </div>
 
-                    <!-- Вторая строка: расписание -->
-                    <div class="schedule-compact">
-                        <div class="schedule-days">
-                            {% for day in branch.schedule %}
-                            <div class="schedule-day-compact {% if day.is_closed %}closed{% endif %}">
-                                <span class="day-abbr">
-                                    {% if day.day == "Понедельник" %}Пн
-                                    {% elif day.day == "Вторник" %}Вт
-                                    {% elif day.day == "Среда" %}Ср
-                                    {% elif day.day == "Четверг" %}Чт
-                                    {% elif day.day == "Пятница" %}Пт
-                                    {% elif day.day == "Суббота" %}Сб
-                                    {% elif day.day == "Воскресенье" %}Вс
-                                    {% else %}{{ day.day }}{% endif %}
-                                </span>
-                                <span class="time-compact">{{ day.time|default:"--:--" }}</span>
+                    <!-- Список филиалов города -->
+                    <div class="branches-list city-branches">
+                        <h4>Список филиалов</h4>
+                        <div class="branches-grid">
+                            {% for branch in city_data.branches %}
+                            <div class="branch-compact-card" data-branch-id="{{ forloop.counter }}-{{ city_data.city }}">
+                                <div class="branch-compact-main">
+                                    <div class="branch-location">
+                                        <span class="location-icon">📍</span>
+                                        <div class="location-info">
+                                            <span class="branch-address">{{ branch.address }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="branch-toggle">
+                                        <span class="toggle-icon">▼</span>
+                                    </div>
+                                </div>
+
+                                <!-- Дополнительная информация филиала -->
+                                <div class="branch-additional-info" id="branch-info-{{ forloop.counter }}-{{ city_data.city }}">
+                                    <!-- Первая строка: телефон, кнопка карты, статус -->
+                                    <div class="info-row first-row">
+                                        <div class="phone-info">
+                                            <span class="info-icon">📞</span>
+                                            <span class="phone-number">{{ branch.phone }}</span>
+                                        </div>
+                                        <div class="actions-status">
+                                            {% if branch.latitude and branch.longitude %}
+                                            <button class="map-btn"
+                                                    data-lat="{{ branch.latitude }}"
+                                                    data-lng="{{ branch.longitude }}"
+                                                    data-title="{{ branch.city }}"
+                                                    data-city-map="city-map-{{ forloop.parentloop.counter }}">
+                                                🗺️ На карте
+                                            </button>
+                                            {% endif %}
+                                            <div class="status-indicator status-{{ branch.status_color }}">
+                                                {% if branch.is_open_now %}🟢{% else %}🔴{% endif %}
+                                                {{ branch.status_text }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Вторая строка: расписание -->
+                                    <div class="schedule-compact">
+                                        <div class="schedule-days">
+                                            {% for day in branch.schedule %}
+                                            <div class="schedule-day-compact {% if day.is_closed %}closed{% endif %}">
+                                                <span class="day-abbr">
+                                                    {% if day.day == "Понедельник" %}Пн
+                                                    {% elif day.day == "Вторник" %}Вт
+                                                    {% elif day.day == "Среда" %}Ср
+                                                    {% elif day.day == "Четверг" %}Чт
+                                                    {% elif day.day == "Пятница" %}Пт
+                                                    {% elif day.day == "Суббота" %}Сб
+                                                    {% elif day.day == "Воскресенье" %}Вс
+                                                    {% else %}{{ day.day }}{% endif %}
+                                                </span>
+                                                <span class="time-compact">{{ day.time|default:"--:--" }}</span>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             {% endfor %}
                         </div>
@@ -93,9 +119,9 @@
                 </div>
             </div>
             {% empty %}
-            <div class="no-branches">
-                <div class="no-branches-icon">🏢</div>
-                <p>Нет активных филиалов для отображения</p>
+            <div class="no-cities">
+                <div class="no-cities-icon">🏢</div>
+                <p>Нет филиалов для отображения</p>
             </div>
             {% endfor %}
         </div>
@@ -110,7 +136,7 @@
     padding: 20px;
 }
 
-/* ЗАГОЛОВОК И СТАТИСТИКА - ОБНОВЛЕНО */
+/* Заголовок и статистика */
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -156,26 +182,139 @@
     opacity: 0.9;
 }
 
-/* Карта */
-.map-section {
-    margin: 40px 0;
+/* Блок городов */
+.cities-section {
+    margin-top: 40px;
 }
 
-.map-section h2 {
+.cities-section h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+
+.cities-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Карточка города */
+.city-card {
+    background: white;
+    border: 2px solid #e8ecef;
+    border-radius: 12px;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.city-card:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+}
+
+.city-card.active {
+    border-color: #667eea;
+    background: #f8faff;
+}
+
+.city-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    min-height: 70px;
+}
+
+.city-icon {
+    font-size: 1.5em;
+    margin-right: 15px;
+}
+
+.city-name {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #2c3e50;
+    flex: 1;
+}
+
+.city-branch-count {
+    background: #667eea;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+.city-toggle {
+    color: #6c757d;
+    transition: transform 0.3s ease;
+    padding: 5px;
+    font-size: 1.1em;
+}
+
+.city-card.active .city-toggle {
+    transform: rotate(180deg);
+    color: #667eea;
+}
+
+/* Детали города */
+.city-details {
+    display: none;
+}
+
+.city-card.active + .city-details {
+    display: block;
+    animation: slideDown 0.4s ease;
+}
+
+.city-content {
+    padding: 0;
+}
+
+.city-title {
+    color: #2c3e50;
+    margin: 30px 25px 20px 25px;
+    font-size: 1.5em;
+    font-weight: 600;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+/* Карта города */
+.city-map {
+    margin: 0 25px 30px 25px;
+}
+
+.city-map h4 {
     color: #2c3e50;
     margin-bottom: 15px;
-    font-size: 1.5em;
+    font-size: 1.2em;
 }
 
-.branches-map {
-    height: 400px;
-    width: 100%;
-    border-radius: 15px;
-    border: 1px solid #e1e5e9;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+.city-branches-map {
+    height: 350px;
+    border-radius: 12px;
 }
 
-/* Компактные карточки филиалов */
+/* Список филиалов города */
+.city-branches {
+    margin: 0 25px 30px 25px;
+}
+
+.city-branches h4 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.2em;
+}
+
+/* Остальные стили для филиалов (остаются прежними) */
 .branches-grid {
     display: flex;
     flex-direction: column;
@@ -231,15 +370,10 @@
     flex-wrap: wrap;
 }
 
-.branch-city {
-    font-weight: 600;
+.branch-address {
     color: #2c3e50;
     font-size: 1em;
-}
-
-.branch-address {
-    color: #6c757d;
-    font-size: 0.9em;
+    font-weight: 500;
 }
 
 .branch-toggle {
@@ -253,7 +387,6 @@
     color: #667eea;
 }
 
-/* Дополнительная информация */
 .branch-additional-info {
     display: none;
     border-top: 1px solid #e8ecef;
@@ -272,7 +405,7 @@
     }
     to {
         opacity: 1;
-        max-height: 200px;
+        max-height: 500px;
     }
 }
 
@@ -286,10 +419,6 @@
 .first-row {
     border-bottom: 1px solid #e8ecef;
     padding-bottom: 12px;
-}
-
-.second-row {
-    padding-top: 12px;
 }
 
 .phone-info {
@@ -353,7 +482,6 @@
     color: #e74c3c;
 }
 
-/* Компактное расписание */
 .schedule-compact {
     padding: 15px 20px;
 }
@@ -409,8 +537,8 @@
     color: #e74c3c;
 }
 
-/* Нет филиалов */
-.no-branches {
+/* Нет городов */
+.no-cities {
     text-align: center;
     padding: 60px 40px;
     color: #6c757d;
@@ -420,7 +548,7 @@
     grid-column: 1 / -1;
 }
 
-.no-branches-icon {
+.no-cities-icon {
     font-size: 3em;
     margin-bottom: 15px;
     opacity: 0.5;
@@ -447,6 +575,27 @@
         padding: 10px 15px;
     }
 
+    .city-main {
+        padding: 15px 20px;
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .city-name {
+        font-size: 1.2em;
+    }
+
+    .city-map,
+    .city-branches {
+        margin: 0 15px 25px 15px;
+    }
+
+    .city-title {
+        margin: 25px 15px 15px 15px;
+        font-size: 1.3em;
+    }
+
     .info-row {
         flex-direction: column;
         gap: 10px;
@@ -463,8 +612,8 @@
         gap: 6px;
     }
 
-    .branches-map {
-        height: 300px;
+    .city-branches-map {
+        height: 250px;
     }
 }
 
@@ -480,48 +629,8 @@
         padding: 8px 12px;
     }
 
-    .header-stat .stat-number {
-        font-size: 1.3em;
-    }
-
-    .header-stat .stat-label {
-        font-size: 0.8em;
-    }
-
-    .branch-compact-main {
-        padding: 12px 15px;
-    }
-
-    .info-row {
-        padding: 10px 15px;
-    }
-
-    .schedule-compact {
-        padding: 12px 15px;
-    }
-
     .schedule-days {
         grid-template-columns: repeat(2, 1fr);
-        gap: 6px;
-    }
-
-    .schedule-day-compact {
-        padding: 10px 4px;
-    }
-
-    .day-abbr {
-        font-size: 0.85em;
-    }
-
-    .time-compact {
-        font-size: 0.8em;
-    }
-}
-
-@media (max-width: 360px) {
-    .schedule-days {
-        grid-template-columns: 1fr;
-        gap: 4px;
     }
 }
 </style>
@@ -530,83 +639,116 @@
 <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const branchesData = {{ branches_json|safe }};
+    // Данные для карт городов
+    const citiesData = {{ cities_json|safe }};
+    const cityMaps = {};
 
-    // Инициализация карты
-    ymaps.ready(initMap);
+    // Инициализация карт для каждого города
+    ymaps.ready(function() {
+        document.querySelectorAll('.city-branches-map').forEach(function(mapElement, index) {
+            const cityName = mapElement.dataset.city;
+            const cityData = citiesData.find(city => city.city === cityName);
 
-    function initMap() {
-        var myMap = new ymaps.Map('branches-map', {
-            center: [55.76, 37.64],
-            zoom: 10
-        });
+            if (cityData && cityData.branches.length > 0) {
+                const map = new ymaps.Map(mapElement.id, {
+                    center: [cityData.branches[0].latitude, cityData.branches[0].longitude],
+                    zoom: 12
+                });
 
-        var clusterer = new ymaps.Clusterer();
+                const clusterer = new ymaps.Clusterer();
 
-        branchesData.forEach(function(branch, index) {
-            var placemark = new ymaps.Placemark(
-                [branch.latitude, branch.longitude],
-                {
-                    balloonContent: `
-                        <div style="padding: 10px; min-width: 200px;">
-                            <h3 style="margin: 0 0 10px 0;">${branch.city}</h3>
-                            <p><strong>📍 Адрес:</strong> ${branch.address}</p>
-                            <p><strong>📞 Телефон:</strong> ${branch.phone}</p>
-                            <p><strong>🕒 Статус:</strong> <span style="color: ${branch.status_color}">${branch.status_text}</span></p>
-                        </div>
-                    `
-                },
-                {
-                    preset: 'islands#icon',
-                    iconColor: branch.is_open_now ? 'green' : 'red'
+                cityData.branches.forEach(function(branch) {
+                    const placemark = new ymaps.Placemark(
+                        [branch.latitude, branch.longitude],
+                        {
+                            balloonContent: `
+                                <div style="padding: 10px; min-width: 200px;">
+                                    <h3 style="margin: 0 0 10px 0;">${branch.city}</h3>
+                                    <p><strong>📍 Адрес:</strong> ${branch.address}</p>
+                                    <p><strong>📞 Телефон:</strong> ${branch.phone}</p>
+                                    <p><strong>🕒 Статус:</strong> <span style="color: ${branch.status_color}">${branch.status_text}</span></p>
+                                </div>
+                            `
+                        },
+                        {
+                            preset: 'islands#icon',
+                            iconColor: branch.is_open_now ? 'green' : 'red'
+                        }
+                    );
+                    clusterer.add(placemark);
+                });
+
+                map.geoObjects.add(clusterer);
+
+                if (cityData.branches.length > 0) {
+                    map.setBounds(clusterer.getBounds(), { checkZoomRange: true });
                 }
-            );
 
-            clusterer.add(placemark);
+                cityMaps[mapElement.id] = map;
+            }
         });
+    });
 
-        myMap.geoObjects.add(clusterer);
-
-        if (branchesData.length > 0) {
-            myMap.setBounds(clusterer.getBounds(), {
-                checkZoomRange: true
-            });
-        }
-
-        // Обработчики для кнопок "На карте"
-        document.querySelectorAll('.map-btn').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
-                e.stopPropagation(); // Предотвращаем всплытие события
-                var lat = parseFloat(this.dataset.lat);
-                var lng = parseFloat(this.dataset.lng);
-                var title = this.dataset.title;
-
-                myMap.setCenter([lat, lng], 15, {
-                    duration: 1000
-                });
-
-                myMap.balloon.open([lat, lng], {
-                    content: `<h3>${title}</h3><p>📍 Выбранный филиал</p>`
-                });
-            });
-        });
-    }
-
-    // Переключение отображения дополнительной информации
-    document.querySelectorAll('.branch-compact-card').forEach(function(card) {
+    // Переключение городов
+    document.querySelectorAll('.city-card').forEach(function(card) {
         card.addEventListener('click', function() {
+            const cityName = this.dataset.city;
+            const cityDetails = this.nextElementSibling;
+
+            // Закрываем все открытые города
+            document.querySelectorAll('.city-card.active').forEach(function(activeCard) {
+                if (activeCard !== this) {
+                    activeCard.classList.remove('active');
+                    activeCard.nextElementSibling.style.display = 'none';
+                }
+            }.bind(this));
+
+            // Переключаем текущий город
+            this.classList.toggle('active');
+            if (this.classList.contains('active')) {
+                cityDetails.style.display = 'block';
+            } else {
+                cityDetails.style.display = 'none';
+            }
+        });
+    });
+
+    // Переключение филиалов
+    document.querySelectorAll('.branch-compact-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            e.stopPropagation(); // Останавливаем всплытие, чтобы не закрывать город
             const branchId = this.dataset.branchId;
             const additionalInfo = document.getElementById(`branch-info-${branchId}`);
 
-            // Закрываем все открытые карточки
-            document.querySelectorAll('.branch-compact-card.active').forEach(function(activeCard) {
+            // Закрываем все открытые филиалы в том же городе
+            const cityCard = this.closest('.city-details');
+            cityCard.querySelectorAll('.branch-compact-card.active').forEach(function(activeCard) {
                 if (activeCard !== this) {
                     activeCard.classList.remove('active');
                 }
             }.bind(this));
 
-            // Переключаем текущую карточку
+            // Переключаем текущий филиал
             this.classList.toggle('active');
+        });
+    });
+
+    // Обработчики для кнопок "На карте" в филиалах
+    document.querySelectorAll('.map-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const lat = parseFloat(this.dataset.lat);
+            const lng = parseFloat(this.dataset.lng);
+            const title = this.dataset.title;
+            const cityMapId = this.dataset.cityMap;
+
+            const cityMap = cityMaps[cityMapId];
+            if (cityMap) {
+                cityMap.setCenter([lat, lng], 15, { duration: 1000 });
+                cityMap.balloon.open([lat, lng], {
+                    content: `<h3>${title}</h3><p>📍 Выбранный филиал</p>`
+                });
+            }
         });
     });
 });
