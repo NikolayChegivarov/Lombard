@@ -650,9 +650,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const cityData = citiesData.find(city => city.city === cityName);
 
             if (cityData && cityData.branches.length > 0) {
+                // Определяем начальный zoom в зависимости от количества филиалов
+                let initialZoom = 12;
+                if (cityData.branches.length === 1) {
+                    initialZoom = 15; // Ближе для одного филиала
+                } else if (cityData.branches.length > 5) {
+                    initialZoom = 10; // Дальше для многих филиалов
+                }
+
                 const map = new ymaps.Map(mapElement.id, {
                     center: [cityData.branches[0].latitude, cityData.branches[0].longitude],
-                    zoom: 12
+                    zoom: initialZoom
                 });
 
                 const clusterer = new ymaps.Clusterer();
@@ -680,8 +688,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 map.geoObjects.add(clusterer);
 
-                if (cityData.branches.length > 0) {
-                    map.setBounds(clusterer.getBounds(), { checkZoomRange: true });
+                // Для нескольких филиалов устанавливаем границы с ограничением по zoom
+                if (cityData.branches.length > 1) {
+                    map.setBounds(clusterer.getBounds(), {
+                        checkZoomRange: true,
+                        zoomMargin: 15
+                    }).then(function() {
+                        // Ограничиваем минимальный zoom
+                        const currentZoom = map.getZoom();
+                        if (currentZoom < 10) {
+                            map.setZoom(10);
+                        }
+                    });
                 }
 
                 cityMaps[mapElement.id] = map;
