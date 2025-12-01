@@ -39,6 +39,7 @@ def branches_view(request):
             'city': branch.city,
             'address': f"{branch.street}, {branch.house}",
             'phone': branch.phone,
+            'formatted_phone': branch.get_formatted_phone(),  # ← ДОБАВЛЕНО
             'description': branch.description,
             'latitude': float(branch.latitude) if branch.latitude else None,
             'longitude': float(branch.longitude) if branch.longitude else None,

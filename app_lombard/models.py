@@ -1,7 +1,13 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from django.core.validators import RegexValidator
 
+
+phone_validator = RegexValidator(
+    regex=r'^(\+7|8)[0-9]{10}$',
+    message='Телефон должен быть в формате +7XXXXXXXXXX или 8XXXXXXXXXX'
+)
 
 class WorkingHours(models.Model):
     """Расписание"""
@@ -53,7 +59,11 @@ class Branch(models.Model):
     city = models.CharField(max_length=100, verbose_name='Город')
     street = models.CharField(max_length=200, verbose_name='Улица')
     house = models.CharField(max_length=10, verbose_name='Дом')
-    phone = models.CharField(max_length=20, verbose_name='Телефон')
+    phone = models.CharField(
+        max_length=20,
+        verbose_name='Телефон',
+        validators=[phone_validator]
+    )
     description = models.TextField(verbose_name="Описание", blank=True)
     is_active = models.BooleanField(default=True, verbose_name="Активный")
     created_at = models.DateTimeField(
@@ -76,6 +86,29 @@ class Branch(models.Model):
 
     def __str__(self):
         return f"{self.city}, {self.street}, {self.house}"
+
+    def get_formatted_phone(self):
+        """Возвращает отформатированный номер телефона"""
+        phone = self.phone.strip()
+
+        # Убираем все нецифровые символы
+        digits = ''.join(filter(str.isdigit, phone))
+
+        # Форматируем номер
+        if len(digits) == 11:
+            if digits.startswith('8'):
+                return f'+7 ({digits[1:4]}) {digits[4:7]}-{digits[7:9]}-{digits[9:]}'
+            elif digits.startswith('7'):
+                return f'+7 ({digits[1:4]}) {digits[4:7]}-{digits[7:9]}-{digits[9:]}'
+        elif len(digits) == 10:
+            return f'+7 ({digits[0:3]}) {digits[3:6]}-{digits[6:8]}-{digits[8:]}'
+
+        # Если не удалось отформатировать, возвращаем как есть
+        return phone
+
+    def get_address(self):
+        """Возвращает полный адрес"""
+        return f"{self.street}, {self.house}"
 
     def get_working_hours_display(self):
         """Возвращает отформатированное представление режима работы"""

@@ -68,22 +68,13 @@
 
                                 <!-- Дополнительная информация филиала -->
                                 <div class="branch-additional-info" id="branch-info-{{ forloop.counter }}-{{ city_data.city }}">
-                                    <!-- Первая строка: телефон, кнопка карты, статус -->
+                                    <!-- Первая строка: телефон и статус -->
                                     <div class="info-row first-row">
                                         <div class="phone-info">
                                             <span class="info-icon">📞</span>
                                             <span class="phone-number">{{ branch.phone }}</span>
                                         </div>
                                         <div class="actions-status">
-                                            {% if branch.latitude and branch.longitude %}
-                                            <button class="map-btn"
-                                                    data-lat="{{ branch.latitude }}"
-                                                    data-lng="{{ branch.longitude }}"
-                                                    data-title="{{ branch.city }}"
-                                                    data-city-map="city-map-{{ forloop.parentloop.counter }}">
-                                                🗺️ На карте
-                                            </button>
-                                            {% endif %}
                                             <div class="status-indicator status-{{ branch.status_color }}">
                                                 {% if branch.is_open_now %}🟢{% else %}🔴{% endif %}
                                                 {{ branch.status_text }}
@@ -443,25 +434,6 @@
     gap: 15px;
 }
 
-.map-btn {
-    background: #667eea;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.8em;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    box-shadow: 0 1px 3px rgba(102, 126, 234, 0.3);
-}
-
-.map-btn:hover {
-    background: #5a6fd8;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.4);
-}
-
 .status-indicator {
     display: flex;
     align-items: center;
@@ -748,25 +720,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Переключаем текущий филиал
             this.classList.toggle('active');
-        });
-    });
-
-    // Обработчики для кнопок "На карте" в филиалах
-    document.querySelectorAll('.map-btn').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const lat = parseFloat(this.dataset.lat);
-            const lng = parseFloat(this.dataset.lng);
-            const title = this.dataset.title;
-            const cityMapId = this.dataset.cityMap;
-
-            const cityMap = cityMaps[cityMapId];
-            if (cityMap) {
-                cityMap.setCenter([lat, lng], 15, { duration: 1000 });
-                cityMap.balloon.open([lat, lng], {
-                    content: `<h3>${title}</h3><p>📍 Выбранный филиал</p>`
-                });
-            }
         });
     });
 });
