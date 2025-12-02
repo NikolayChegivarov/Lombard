@@ -58,6 +58,7 @@
     gap: 15px;
     margin: 30px 0;
     justify-content: center;
+    align-items: center;
 }
 
 .btn {
@@ -94,18 +95,8 @@
     transform: translateY(-2px);
 }
 
-.btn-secondary {
-    background: #6c757d;
-    color: white; /* Явно указываем белый цвет */
-}
-
-.btn-secondary:hover {
-    background: #545b62;
-    transform: translateY(-2px);
-}
-
-/* Стили для кнопки-ссылки "Назад" */
-.back-button {
+/* КНОПКА НАЗАД - специальные стили */
+.btn-back {
     padding: 12px 30px;
     border: none;
     border-radius: 5px;
@@ -114,18 +105,30 @@
     font-weight: bold;
     transition: all 0.3s ease;
     min-width: 150px;
-    color: white; /* Белый текст */
-    text-decoration: none;
+    background: #6c757d;
+    color: white !important; /* ЯВНО белый цвет с !important */
+    text-decoration: none !important;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #6c757d;
+    text-align: center;
 }
 
-.back-button:hover {
+.btn-back:hover {
     background: #545b62;
     transform: translateY(-2px);
-    color: white;
+    color: white !important;
+}
+
+/* Убедимся, что ссылка внутри имеет белый цвет */
+.btn-back,
+.btn-back:link,
+.btn-back:visited,
+.btn-back:hover,
+.btn-back:active,
+.btn-back:focus {
+    color: white !important;
+    text-decoration: none !important;
 }
 
 .metal-section {
@@ -209,7 +212,7 @@
         padding: 10px 20px;
     }
 
-    .back-button {
+    .btn-back {
         min-width: 120px;
         padding: 10px 20px;
     }
@@ -294,7 +297,7 @@
                     💾 Сохранить новые цены
                 </button>
 
-                <a href="../" class="back-button">
+                <a href="../" class="btn-back">
                     ↩ Назад
                 </a>
             </div>
@@ -343,7 +346,7 @@
                     🔢 Рассчитать
                 </button>
 
-                <a href="../" class="back-button">
+                <a href="../" class="btn-back">
                     ↩ Назад
                 </a>
             </div>
