@@ -157,10 +157,6 @@ class MetalPrice(models.Model):
         verbose_name='Цена за грамм (руб.)',
         validators=[MinValueValidator(0)]
     )
-    is_active = models.BooleanField(
-        default=True,
-        verbose_name='Активная цена'
-    )
     created_at = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата создания'
@@ -170,7 +166,8 @@ class MetalPrice(models.Model):
         verbose_name = 'Цена металла'
         verbose_name_plural = 'Цены металлов'
         ordering = ['metal_type', 'sample']
-        unique_together = ['metal_type', 'sample', 'is_active']
+        # УБРАТЬ ЭТУ СТРОКУ полностью:
+        # unique_together = ['metal_type', 'sample']
 
     def __str__(self):
         return f"{self.get_metal_type_display()} {self.sample} - {self.price_per_gram} руб./г"
@@ -179,7 +176,7 @@ class MetalPrice(models.Model):
     def get_current_prices_dict(cls):
         """Получить текущие цены в виде словаря"""
         prices = {}
-        for price in cls.objects.filter(is_active=True):
+        for price in cls.objects.all():
             key = f"{price.metal_type}_{price.sample}"
             prices[key] = price.price_per_gram
         return prices

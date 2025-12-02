@@ -8,11 +8,11 @@ from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.urls import path
 from django.shortcuts import render
-from decimal import Decimal, InvalidOperation  # Добавлено
-import decimal  # Добавлено
+from decimal import Decimal, InvalidOperation
+import decimal
 from .views.price_calculator import price_calculator
 from django.contrib import messages
-
+from django.db import transaction
 
 # --------------------------РАСПИСАНИЕ--------------------------------------------------------------------------------
 class WorkingHoursForm(forms.ModelForm):
@@ -224,9 +224,8 @@ class MetalPriceAdmin(admin.ModelAdmin):
         'sample',
         'price_display',
         'created_at',
-        'is_active_display'
     ]
-    list_filter = ['metal_type', 'is_active']
+    list_filter = ['metal_type']
     search_fields = ['sample']
     readonly_fields = ['created_at']
     list_per_page = 20
@@ -240,10 +239,8 @@ class MetalPriceAdmin(admin.ModelAdmin):
         return False
 
     def has_delete_permission(self, request, obj=None):
-        """Разрешаем удаление только неактивных записей"""
-        if obj and not obj.is_active:
-            return True
-        return False
+        """Теперь разрешаем удаление всех записей, т.к. нет статуса active/inactive"""
+        return True  # Разрешаем удаление, т.к. нет поля is_active
 
     def metal_type_display(self, obj):
         color = '#FFD700' if obj.metal_type == 'gold' else '#C0C0C0'
@@ -259,17 +256,6 @@ class MetalPriceAdmin(admin.ModelAdmin):
         return f"{obj.price_per_gram} руб./г"
 
     price_display.short_description = 'Цена'
-
-    def is_active_display(self, obj):
-        if obj.is_active:
-            return format_html(
-                '<span style="color: green; font-weight: bold;">✓ Активна</span>'
-            )
-        return format_html(
-            '<span style="color: gray;">✗ Не активна</span>'
-        )
-
-    is_active_display.short_description = 'Статус'
 
     def changelist_view(self, request, extra_context=None):
         """Кастомное отображение списка цен"""
@@ -423,26 +409,21 @@ class MetalPriceAdmin(admin.ModelAdmin):
 
     def update_all_prices_in_db(self, gold_585_price, silver_925_price, gold_prices):
         """Обновить все цены в базе данных"""
-        # Закрываем старые цены
-        MetalPrice.objects.filter(is_active=True).update(is_active=False)
-
-        # Создаем новые записи для золота
+        # Для золота
         gold_samples = [375, 500, 585, 750, 850]
-
         for sample in gold_samples:
             price = gold_prices.get(sample, Decimal('0'))
 
-            MetalPrice.objects.create(
+            # Обновляем или создаем
+            MetalPrice.objects.update_or_create(
                 metal_type='gold',
                 sample=sample,
-                price_per_gram=price,
-                is_active=True
+                defaults={'price_per_gram': price}
             )
 
-        # Создаем запись для серебра
-        MetalPrice.objects.create(
+        # Для серебра
+        MetalPrice.objects.update_or_create(
             metal_type='silver',
             sample=925,
-            price_per_gram=silver_925_price,
-            is_active=True
+            defaults={'price_per_gram': silver_925_price}
         )
