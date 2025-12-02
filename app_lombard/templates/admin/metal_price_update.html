@@ -245,6 +245,10 @@
             <div class="calculated-prices">
                 <h4>Расчитанные новые цены:</h4>
 
+                <!-- Скрытые поля для передачи значений при сохранении -->
+                <input type="hidden" name="gold_585_price" value="{{ gold_585_price|floatformat:2 }}">
+                <input type="hidden" name="silver_925_price" value="{{ silver_925_price|floatformat:2 }}">
+
                 <!-- Золото -->
                 <div style="margin-bottom: 20px;">
                     <h5 style="color: #B8860B; margin-bottom: 10px;">Золото:</h5>

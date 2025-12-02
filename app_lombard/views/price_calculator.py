@@ -1,6 +1,6 @@
 
 
-def price_calculator(main_proba, decimals=2):
+def price_calculator(main_proba, decimals=0):
     """Функция для подсчета остальных проб."""
     proba_375 = round(main_proba * 375 / 585, decimals)
     proba_500 = round(main_proba * 500 / 585, decimals)
