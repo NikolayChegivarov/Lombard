@@ -285,7 +285,7 @@ class MetalPriceAdmin(admin.ModelAdmin):
 
         extra_context.update({
             'prices_display': prices_display,
-            'title': 'Управление ценами на пробы',
+            'title': 'Актуальные цены на металл',
         })
 
         return super().changelist_view(request, extra_context=extra_context)
