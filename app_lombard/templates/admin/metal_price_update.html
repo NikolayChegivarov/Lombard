@@ -1,0 +1,503 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.update-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 40px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border: 2px solid #ddd;
+}
+
+.update-container h1 {
+    color: #343a40;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #dee2e6;
+    text-align: center;
+}
+
+.current-prices, .new-prices {
+    margin: 30px 0;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.current-prices {
+    background: #e9ecef;
+    border: 1px solid #ced4da;
+}
+
+.new-prices {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+.price-group {
+    margin-bottom: 25px;
+}
+
+.price-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #495057;
+}
+
+.price-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.price-group input:focus {
+    border-color: #79aec8;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(121, 174, 200, 0.1);
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    margin: 30px 0;
+    justify-content: center;
+}
+
+.btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.btn-primary {
+    background: #79aec8;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #609ab6;
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background: #5cb85c;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #449d44;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #545b62;
+}
+
+.price-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+.price-table th, .price-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.price-table th {
+    background: #79aec8;
+    color: white;
+    font-weight: bold;
+}
+
+.price-table tr:last-child td {
+    border-bottom: none;
+}
+
+.current-price {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.new-price-input {
+    width: 100%;
+    padding: 8px;
+    border: 2px solid #007bff;
+    border-radius: 4px;
+    text-align: right;
+    font-weight: bold;
+}
+
+.metal-section {
+    margin: 30px 0;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.gold-section {
+    background: #FFF9E6;
+    border: 2px solid #FFD700;
+}
+
+.silver-section {
+    background: #F8F9FA;
+    border: 2px solid #C0C0C0;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    color: #343a40;
+}
+
+.gold-title {
+    color: #B8860B;
+}
+
+.silver-title {
+    color: #708090;
+}
+
+.price-row {
+    display: grid;
+    grid-template-columns: 150px 1fr 1fr;
+    gap: 20px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.price-row:last-child {
+    border-bottom: none;
+}
+
+.calculated-value {
+    color: #007bff;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: right;
+    padding: 8px;
+    background: #e7f3ff;
+    border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+    .update-container {
+        padding: 20px;
+        margin: 20px;
+    }
+
+    .price-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .btn {
+        min-width: 120px;
+        padding: 10px 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="update-container">
+        <h1>Обновление цен на пробы металлов</h1>
+
+        {% if messages %}
+        <div style="margin: 20px 0;">
+            {% for message in messages %}
+            <div style="padding: 15px; border-radius: 5px; margin-bottom: 10px;
+                {% if message.tags == 'success' %}background: #d4edda; color: #155724; border: 1px solid #c3e6cb;
+                {% elif message.tags == 'error' %}background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;
+                {% else %}background: #fff3cd; color: #856404; border: 1px solid #ffeaa7;{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" id="priceForm">
+            {% csrf_token %}
+
+            <div class="current-prices">
+                <h3>Текущие цены:</h3>
+                <div class="price-table">
+                    <thead>
+                        <tr>
+                            <th>Металл</th>
+                            <th>Проба</th>
+                            <th>Цена (руб./г)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Золото -->
+                        <tr>
+                            <td rowspan="5">Золото</td>
+                            <td>375</td>
+                            <td class="current-price">{{ current_prices.gold_375|default:"—" }}</td>
+                        </tr>
+                        <tr>
+                            <td>500</td>
+                            <td class="current-price">{{ current_prices.gold_500|default:"—" }}</td>
+                        </tr>
+                        <tr>
+                            <td>585</td>
+                            <td class="current-price">{{ current_prices.gold_585|default:"—" }}</td>
+                        </tr>
+                        <tr>
+                            <td>750</td>
+                            <td class="current-price">{{ current_prices.gold_750|default:"—" }}</td>
+                        </tr>
+                        <tr>
+                            <td>850</td>
+                            <td class="current-price">{{ current_prices.gold_850|default:"—" }}</td>
+                        </tr>
+                        <!-- Серебро -->
+                        <tr>
+                            <td>Серебро</td>
+                            <td>925</td>
+                            <td class="current-price">{{ current_prices.silver_925|default:"—" }}</td>
+                        </tr>
+                    </tbody>
+                </div>
+            </div>
+
+            <div class="metal-section gold-section">
+                <div class="section-title gold-title">
+                    <h3>Новые цены на золото:</h3>
+                </div>
+
+                <div class="price-group">
+                    <label for="gold_585_price">Цена на золото 585 пробы (руб./г):</label>
+                    <input type="number"
+                           id="gold_585_price"
+                           name="gold_585_price"
+                           step="0.01"
+                           min="0"
+                           value="{{ gold_585_price|default:'' }}"
+                           required
+                           placeholder="Введите цену">
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <h4>Рассчитанные цены на другие пробы золота:</h4>
+
+                    <!-- Показываем рассчитанные значения только после расчета -->
+                    {% if show_results %}
+                    <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                        <p><strong>Расчитанные значения:</strong></p>
+                        <div class="price-row">
+                            <span><strong>Проба 375:</strong></span>
+                            <div class="calculated-value">{{ calculated_prices.gold_375|floatformat:2 }}</div>
+                            <span>руб./г</span>
+                        </div>
+                        <div class="price-row">
+                            <span><strong>Проба 500:</strong></span>
+                            <div class="calculated-value">{{ calculated_prices.gold_500|floatformat:2 }}</div>
+                            <span>руб./г</span>
+                        </div>
+                        <div class="price-row">
+                            <span><strong>Проба 585:</strong></span>
+                            <div class="calculated-value">{{ calculated_prices.gold_585|floatformat:2 }}</div>
+                            <span>руб./г</span>
+                        </div>
+                        <div class="price-row">
+                            <span><strong>Проба 750:</strong></span>
+                            <div class="calculated-value">{{ calculated_prices.gold_750|floatformat:2 }}</div>
+                            <span>руб./г</span>
+                        </div>
+                        <div class="price-row">
+                            <span><strong>Проба 850:</strong></span>
+                            <div class="calculated-value">{{ calculated_prices.gold_850|floatformat:2 }}</div>
+                            <span>руб./г</span>
+                        </div>
+                    </div>
+
+                    <h4>Вы можете отредактировать значения перед сохранением:</h4>
+                    {% endif %}
+
+                    <!-- Поля для редактирования -->
+                    <div class="price-row">
+                        <span><strong>Проба 375:</strong></span>
+                        <input type="number"
+                               name="gold_375_price"
+                               step="0.01"
+                               min="0"
+                               value="{% if show_results %}{{ calculated_prices.gold_375|floatformat:2 }}{% endif %}"
+                               class="new-price-input"
+                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                        <span>руб./г</span>
+                    </div>
+                    <div class="price-row">
+                        <span><strong>Проба 500:</strong></span>
+                        <input type="number"
+                               name="gold_500_price"
+                               step="0.01"
+                               min="0"
+                               value="{% if show_results %}{{ calculated_prices.gold_500|floatformat:2 }}{% endif %}"
+                               class="new-price-input"
+                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                        <span>руб./г</span>
+                    </div>
+                    <div class="price-row">
+                        <span><strong>Проба 585:</strong></span>
+                        <input type="number"
+                               name="gold_585_price_field"
+                               step="0.01"
+                               min="0"
+                               value="{% if show_results %}{{ calculated_prices.gold_585|floatformat:2 }}{% endif %}"
+                               class="new-price-input"
+                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}
+                               readonly>
+                        <span>руб./г</span>
+                    </div>
+                    <div class="price-row">
+                        <span><strong>Проба 750:</strong></span>
+                        <input type="number"
+                               name="gold_750_price"
+                               step="0.01"
+                               min="0"
+                               value="{% if show_results %}{{ calculated_prices.gold_750|floatformat:2 }}{% endif %}"
+                               class="new-price-input"
+                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                        <span>руб./г</span>
+                    </div>
+                    <div class="price-row">
+                        <span><strong>Проба 850:</strong></span>
+                        <input type="number"
+                               name="gold_850_price"
+                               step="0.01"
+                               min="0"
+                               value="{% if show_results %}{{ calculated_prices.gold_850|floatformat:2 }}{% endif %}"
+                               class="new-price-input"
+                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                        <span>руб./г</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="metal-section silver-section">
+                <div class="section-title silver-title">
+                    <h3>Новая цена на серебро:</h3>
+                </div>
+
+                <div class="price-group">
+                    <label for="silver_925_price">Цена на серебро 925 пробы (руб./г):</label>
+                    <input type="number"
+                           id="silver_925_price"
+                           name="silver_925_price"
+                           step="0.01"
+                           min="0"
+                           value="{{ silver_925_price|default:'' }}"
+                           required
+                           placeholder="Введите цену">
+                </div>
+
+                {% if show_results %}
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <p><strong>Расчитанная цена на серебро:</strong></p>
+                    <div style="text-align: center; font-size: 18px; font-weight: bold; color: #007bff;">
+                        {{ calculated_prices.silver_925|floatformat:2 }} руб./г
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="button-group">
+                {% if not show_results %}
+                <button type="submit" name="calculate" class="btn btn-primary">
+                    🔢 Рассчитать
+                </button>
+                {% else %}
+                <button type="submit" name="save" class="btn btn-success">
+                    💾 Сохранить новые цены
+                </button>
+                <button type="submit" name="recalculate" class="btn btn-primary">
+                    🔄 Пересчитать
+                </button>
+                {% endif %}
+
+                <a href="../" class="btn btn-secondary">
+                    ↩ Назад
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extrajs %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Авторасчет цен на золото при изменении цены 585
+    const gold585Input = document.getElementById('gold_585_price');
+    const form = document.getElementById('priceForm');
+
+    if (gold585Input) {
+        gold585Input.addEventListener('input', function() {
+            const price = parseFloat(this.value);
+            if (!isNaN(price) && price > 0) {
+                // Рассчитываем коэффициенты
+                const coefficients = {
+                    375: 375 / 585,
+                    500: 500 / 585,
+                    750: 750 / 585,
+                    850: 850 / 585
+                };
+
+                // Обновляем поля
+                for (const [sample, coeff] of Object.entries(coefficients)) {
+                    const input = document.querySelector(`input[name="gold_${sample}_price"]`);
+                    if (input && (!input.value || input.value === '')) {
+                        const calculated = (price * coeff).toFixed(2);
+                        input.value = calculated;
+                    }
+                }
+
+                // Обновляем поле для пробы 585 (только для отображения)
+                const gold585Display = document.querySelector('input[name="gold_585_price_field"]');
+                if (gold585Display) {
+                    gold585Display.value = price.toFixed(2);
+                }
+            }
+        });
+    }
+
+    // Автоматический расчет при загрузке страницы, если есть цена 585
+    if (gold585Input && gold585Input.value) {
+        const event = new Event('input');
+        gold585Input.dispatchEvent(event);
+    }
+});
+</script>
+{% endblock %}

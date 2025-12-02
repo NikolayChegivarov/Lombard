@@ -2,9 +2,18 @@ from django.contrib import admin
 from django.utils.html import format_html
 from django.forms import BaseInlineFormSet
 from django import forms
-from .models import Branch, WorkingHours
+from .models import Branch, WorkingHours, MetalPrice
 
-#--------------------------РАСПИСАНИЕ----------------------------
+from django.utils import timezone
+from django.http import HttpResponseRedirect
+from django.urls import path
+from django.shortcuts import render
+from decimal import Decimal
+from .views.price_calculator import price_calculator
+from django.contrib import messages
+
+
+#--------------------------РАСПИСАНИЕ--------------------------------------------------------------------------------
 class WorkingHoursForm(forms.ModelForm):
     """Кастомная форма для времени с предустановленными значениями"""
 
@@ -181,7 +190,7 @@ class BranchAdmin(admin.ModelAdmin):
         """Оптимизация запросов"""
         return super().get_queryset(request).prefetch_related('working_hours')
 
-#--------------------------ФИЛИАЛЫ----------------------------
+#--------------------------ФИЛИАЛЫ-----------------------------------------------------------------------------------
 @admin.register(WorkingHours)
 class WorkingHoursAdmin(admin.ModelAdmin):
     """Отдельная админка для режима работы"""
@@ -200,3 +209,223 @@ class WorkingHoursAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('branch')
+
+#--------------------------Цены на пробы------------------------------------------------------------------------------
+@admin.register(MetalPrice)
+class MetalPriceAdmin(admin.ModelAdmin):
+    """Админка для управления ценами на пробы"""
+    change_list_template = 'admin/metal_price_change_list.html'
+
+    list_display = [
+        'metal_type_display',
+        'sample',
+        'price_display',
+        'created_at',
+        'is_active_display'
+    ]
+    list_filter = ['metal_type', 'is_active']
+    search_fields = ['sample']
+    readonly_fields = ['created_at']
+    list_per_page = 20
+
+    def has_add_permission(self, request):
+        """Запрещаем добавление через стандартную форму"""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Запрещаем редактирование отдельных записей"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Разрешаем удаление только неактивных записей"""
+        if obj and not obj.is_active:
+            return True
+        return False
+
+    def metal_type_display(self, obj):
+        color = '#FFD700' if obj.metal_type == 'gold' else '#C0C0C0'
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            color,
+            obj.get_metal_type_display()
+        )
+
+    metal_type_display.short_description = 'Металл'
+
+    def price_display(self, obj):
+        return f"{obj.price_per_gram} руб./г"
+
+    price_display.short_description = 'Цена'
+
+    def is_active_display(self, obj):
+        if obj.is_active:
+            return format_html(
+                '<span style="color: green; font-weight: bold;">✓ Активна</span>'
+            )
+        return format_html(
+            '<span style="color: gray;">✗ Не активна</span>'
+        )
+
+    is_active_display.short_description = 'Статус'
+
+    def changelist_view(self, request, extra_context=None):
+        """Кастомное отображение списка цен"""
+        extra_context = extra_context or {}
+
+        # Получаем текущие активные цены
+        current_prices = MetalPrice.get_current_prices_dict()
+
+        # Подготавливаем данные для отображения
+        prices_display = []
+
+        # Золото
+        for sample in [375, 500, 585, 750, 850]:
+            key = f"gold_{sample}"
+            prices_display.append({
+                'metal': 'gold',
+                'sample': sample,
+                'current_price': current_prices.get(key, '—'),
+            })
+
+        # Серебро
+        prices_display.append({
+            'metal': 'silver',
+            'sample': 925,
+            'current_price': current_prices.get('silver_925', '—'),
+        })
+
+        extra_context.update({
+            'prices_display': prices_display,
+            'title': 'Управление ценами на пробы',
+        })
+
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                'update-prices/',
+                self.admin_site.admin_view(self.update_prices_view),
+                name='metal_prices_update'
+            ),
+        ]
+        return custom_urls + urls
+
+    def update_prices_view(self, request):
+        """Представление для обновления цен"""
+        context = {
+            **self.admin_site.each_context(request),
+            'title': 'Обновление цен на пробы',
+            'opts': self.model._meta,
+            'app_label': self.model._meta.app_label,
+        }
+
+        # Получаем текущие цены
+        current_prices = MetalPrice.get_current_prices_dict()
+
+        if request.method == 'POST':
+            if 'calculate' in request.POST or 'recalculate' in request.POST:
+                # Расчет новых цен
+                try:
+                    gold_585_price = Decimal(request.POST.get('gold_585_price', '0'))
+                    silver_925_price = Decimal(request.POST.get('silver_925_price', '0'))
+
+                    if gold_585_price <= 0 or silver_925_price <= 0:
+                        raise ValueError("Цена должна быть больше 0")
+
+                    # Рассчитываем цены для золота
+                    calculated_gold = price_calculator(gold_585_price)
+
+                    # Получаем введенные пользователем цены (или рассчитанные по умолчанию)
+                    calculated_prices = {}
+                    gold_samples = [375, 500, 585, 750, 850]
+
+                    for sample in gold_samples:
+                        field_name = f'gold_{sample}_price'
+                        user_price = request.POST.get(field_name, '')
+                        if user_price:
+                            calculated_prices[f'gold_{sample}'] = Decimal(user_price)
+                        else:
+                            # Используем рассчитанную цену
+                            proba_key = f'proba_{sample}'
+                            calculated_prices[f'gold_{sample}'] = calculated_gold.get(proba_key, Decimal('0'))
+
+                    # Для серебра
+                    calculated_prices['silver_925'] = silver_925_price
+
+                    context.update({
+                        'calculated_prices': calculated_prices,
+                        'gold_585_price': gold_585_price,
+                        'silver_925_price': silver_925_price,
+                        'show_results': True,
+                    })
+
+                except (ValueError, TypeError) as e:
+                    messages.error(request, f'Ошибка ввода: {str(e)}')
+
+            elif 'save' in request.POST:
+                # Сохранение новых цен
+                try:
+                    gold_585_price = Decimal(request.POST.get('gold_585_price', '0'))
+                    silver_925_price = Decimal(request.POST.get('silver_925_price', '0'))
+
+                    # Получаем все цены из формы
+                    new_prices = {}
+                    gold_samples = [375, 500, 585, 750, 850]
+
+                    for sample in gold_samples:
+                        field_name = f'gold_{sample}_price'
+                        price = Decimal(request.POST.get(field_name, '0'))
+                        new_prices[f'gold_{sample}'] = price
+
+                    new_prices['silver_925'] = silver_925_price
+
+                    # Обновляем цены в базе
+                    self.update_all_prices_in_db(gold_585_price, silver_925_price)
+
+                    messages.success(request, 'Цены успешно обновлены!')
+                    return HttpResponseRedirect('../')
+
+                except Exception as e:
+                    messages.error(request, f'Ошибка при сохранении: {str(e)}')
+
+        context.update({
+            'current_prices': current_prices,
+            'show_results': 'show_results' in context and context['show_results'],
+        })
+
+        return render(request, 'admin/metal_price_update.html', context)
+
+    def update_all_prices_in_db(self, gold_585_price, silver_925_price):
+        """Обновить все цены в базе данных"""
+        # Закрываем старые цены
+        MetalPrice.objects.filter(is_active=True).update(is_active=False)
+
+        # Рассчитываем цены для золота
+        calculated_gold = price_calculator(gold_585_price)
+
+        # Создаем новые записи для золота
+        gold_samples = [
+            (375, calculated_gold['proba_375']),
+            (500, calculated_gold['proba_500']),
+            (585, calculated_gold['proba_585']),
+            (750, calculated_gold['proba_750']),
+            (850, calculated_gold['proba_850']),
+        ]
+
+        for sample, price in gold_samples:
+            MetalPrice.objects.create(
+                metal_type='gold',
+                sample=sample,
+                price_per_gram=price,
+                is_active=True
+            )
+
+        # Создаем запись для серебра
+        MetalPrice.objects.create(
+            metal_type='silver',
+            sample=925,
+            price_per_gram=silver_925_price,
+            is_active=True
+        )
