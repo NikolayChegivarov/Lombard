@@ -8,12 +8,13 @@ from django.utils import timezone
 from django.http import HttpResponseRedirect
 from django.urls import path
 from django.shortcuts import render
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation  # Добавлено
+import decimal  # Добавлено
 from .views.price_calculator import price_calculator
 from django.contrib import messages
 
 
-#--------------------------РАСПИСАНИЕ--------------------------------------------------------------------------------
+# --------------------------РАСПИСАНИЕ--------------------------------------------------------------------------------
 class WorkingHoursForm(forms.ModelForm):
     """Кастомная форма для времени с предустановленными значениями"""
 
@@ -190,7 +191,8 @@ class BranchAdmin(admin.ModelAdmin):
         """Оптимизация запросов"""
         return super().get_queryset(request).prefetch_related('working_hours')
 
-#--------------------------ФИЛИАЛЫ-----------------------------------------------------------------------------------
+
+# --------------------------ФИЛИАЛЫ-----------------------------------------------------------------------------------
 @admin.register(WorkingHours)
 class WorkingHoursAdmin(admin.ModelAdmin):
     """Отдельная админка для режима работы"""
@@ -210,7 +212,8 @@ class WorkingHoursAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('branch')
 
-#--------------------------Цены на пробы------------------------------------------------------------------------------
+
+# --------------------------Цены на пробы------------------------------------------------------------------------------
 @admin.register(MetalPrice)
 class MetalPriceAdmin(admin.ModelAdmin):
     """Админка для управления ценами на пробы"""
@@ -328,8 +331,11 @@ class MetalPriceAdmin(admin.ModelAdmin):
             if 'calculate' in request.POST or 'recalculate' in request.POST:
                 # Расчет новых цен
                 try:
-                    gold_585_price = Decimal(request.POST.get('gold_585_price', '0'))
-                    silver_925_price = Decimal(request.POST.get('silver_925_price', '0'))
+                    gold_585_price_str = request.POST.get('gold_585_price', '0').replace(',', '.')
+                    silver_925_price_str = request.POST.get('silver_925_price', '0').replace(',', '.')
+
+                    gold_585_price = Decimal(gold_585_price_str) if gold_585_price_str else Decimal('0')
+                    silver_925_price = Decimal(silver_925_price_str) if silver_925_price_str else Decimal('0')
 
                     if gold_585_price <= 0 or silver_925_price <= 0:
                         raise ValueError("Цена должна быть больше 0")
@@ -343,9 +349,10 @@ class MetalPriceAdmin(admin.ModelAdmin):
 
                     for sample in gold_samples:
                         field_name = f'gold_{sample}_price'
-                        user_price = request.POST.get(field_name, '')
-                        if user_price:
-                            calculated_prices[f'gold_{sample}'] = Decimal(user_price)
+                        user_price_str = request.POST.get(field_name, '').replace(',', '.')
+
+                        if user_price_str:
+                            calculated_prices[f'gold_{sample}'] = Decimal(user_price_str)
                         else:
                             # Используем рассчитанную цену
                             proba_key = f'proba_{sample}'
@@ -361,28 +368,45 @@ class MetalPriceAdmin(admin.ModelAdmin):
                         'show_results': True,
                     })
 
-                except (ValueError, TypeError) as e:
+                except (ValueError, TypeError, InvalidOperation) as e:
                     messages.error(request, f'Ошибка ввода: {str(e)}')
 
             elif 'save' in request.POST:
                 # Сохранение новых цен
                 try:
-                    gold_585_price = Decimal(request.POST.get('gold_585_price', '0'))
-                    silver_925_price = Decimal(request.POST.get('silver_925_price', '0'))
+                    gold_585_price_str = request.POST.get('gold_585_price', '0').replace(',', '.')
+                    silver_925_price_str = request.POST.get('silver_925_price', '0').replace(',', '.')
 
-                    # Получаем все цены из формы
-                    new_prices = {}
+                    gold_585_price = Decimal(gold_585_price_str) if gold_585_price_str else Decimal('0')
+                    silver_925_price = Decimal(silver_925_price_str) if silver_925_price_str else Decimal('0')
+
+                    # Проверка базовых цен
+                    if gold_585_price <= 0 or silver_925_price <= 0:
+                        raise ValueError("Цена должна быть больше 0")
+
+                    # Собираем все цены из формы
+                    gold_prices = {}
                     gold_samples = [375, 500, 585, 750, 850]
 
                     for sample in gold_samples:
                         field_name = f'gold_{sample}_price'
-                        price = Decimal(request.POST.get(field_name, '0'))
-                        new_prices[f'gold_{sample}'] = price
+                        price_str = request.POST.get(field_name, '').replace(',', '.')
 
-                    new_prices['silver_925'] = silver_925_price
+                        if not price_str:
+                            # Если цена не указана, используем рассчитанную по умолчанию
+                            calculated_gold = price_calculator(gold_585_price)
+                            proba_key = f'proba_{sample}'
+                            price = calculated_gold.get(proba_key, Decimal('0'))
+                        else:
+                            try:
+                                price = Decimal(price_str)
+                            except InvalidOperation:
+                                raise ValueError(f"Некорректная цена для пробы {sample}")
+
+                        gold_prices[sample] = price
 
                     # Обновляем цены в базе
-                    self.update_all_prices_in_db(gold_585_price, silver_925_price)
+                    self.update_all_prices_in_db(gold_585_price, silver_925_price, gold_prices)
 
                     messages.success(request, 'Цены успешно обновлены!')
                     return HttpResponseRedirect('../')
@@ -397,24 +421,17 @@ class MetalPriceAdmin(admin.ModelAdmin):
 
         return render(request, 'admin/metal_price_update.html', context)
 
-    def update_all_prices_in_db(self, gold_585_price, silver_925_price):
+    def update_all_prices_in_db(self, gold_585_price, silver_925_price, gold_prices):
         """Обновить все цены в базе данных"""
         # Закрываем старые цены
         MetalPrice.objects.filter(is_active=True).update(is_active=False)
 
-        # Рассчитываем цены для золота
-        calculated_gold = price_calculator(gold_585_price)
-
         # Создаем новые записи для золота
-        gold_samples = [
-            (375, calculated_gold['proba_375']),
-            (500, calculated_gold['proba_500']),
-            (585, calculated_gold['proba_585']),
-            (750, calculated_gold['proba_750']),
-            (850, calculated_gold['proba_850']),
-        ]
+        gold_samples = [375, 500, 585, 750, 850]
 
-        for sample, price in gold_samples:
+        for sample in gold_samples:
+            price = gold_prices.get(sample, Decimal('0'))
+
             MetalPrice.objects.create(
                 metal_type='gold',
                 sample=sample,

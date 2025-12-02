@@ -209,6 +209,10 @@
     border-radius: 4px;
 }
 
+.hidden-fields {
+    display: none;
+}
+
 @media (max-width: 768px) {
     .update-container {
         padding: 20px;
@@ -248,6 +252,15 @@
 
         <form method="post" id="priceForm">
             {% csrf_token %}
+
+            <!-- Скрытые поля для хранения рассчитанных значений -->
+            <div class="hidden-fields">
+                <input type="hidden" id="calculated_375" value="{% if calculated_prices.gold_375 %}{{ calculated_prices.gold_375 }}{% endif %}">
+                <input type="hidden" id="calculated_500" value="{% if calculated_prices.gold_500 %}{{ calculated_prices.gold_500 }}{% endif %}">
+                <input type="hidden" id="calculated_585" value="{% if calculated_prices.gold_585 %}{{ calculated_prices.gold_585 }}{% endif %}">
+                <input type="hidden" id="calculated_750" value="{% if calculated_prices.gold_750 %}{{ calculated_prices.gold_750 }}{% endif %}">
+                <input type="hidden" id="calculated_850" value="{% if calculated_prices.gold_850 %}{{ calculated_prices.gold_850 }}{% endif %}">
+            </div>
 
             <div class="current-prices">
                 <h3>Текущие цены:</h3>
@@ -310,9 +323,6 @@
                 </div>
 
                 <div style="margin-top: 20px;">
-                    <h4>Рассчитанные цены на другие пробы золота:</h4>
-
-                    <!-- Показываем рассчитанные значения только после расчета -->
                     {% if show_results %}
                     <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
                         <p><strong>Расчитанные значения:</strong></p>
@@ -350,57 +360,67 @@
                     <div class="price-row">
                         <span><strong>Проба 375:</strong></span>
                         <input type="number"
+                               id="gold_375_price"
                                name="gold_375_price"
                                step="0.01"
                                min="0"
                                value="{% if show_results %}{{ calculated_prices.gold_375|floatformat:2 }}{% endif %}"
                                class="new-price-input"
-                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                               placeholder="Автоматический расчет"
+                               data-required-for-save="true">
                         <span>руб./г</span>
                     </div>
                     <div class="price-row">
                         <span><strong>Проба 500:</strong></span>
                         <input type="number"
+                               id="gold_500_price"
                                name="gold_500_price"
                                step="0.01"
                                min="0"
                                value="{% if show_results %}{{ calculated_prices.gold_500|floatformat:2 }}{% endif %}"
                                class="new-price-input"
-                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                               placeholder="Автоматический расчет"
+                               data-required-for-save="true">
                         <span>руб./г</span>
                     </div>
                     <div class="price-row">
                         <span><strong>Проба 585:</strong></span>
                         <input type="number"
+                               id="gold_585_price_field"
                                name="gold_585_price_field"
                                step="0.01"
                                min="0"
                                value="{% if show_results %}{{ calculated_prices.gold_585|floatformat:2 }}{% endif %}"
                                class="new-price-input"
-                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}
-                               readonly>
+                               placeholder="Автоматический расчет"
+                               readonly
+                               data-required-for-save="true">
                         <span>руб./г</span>
                     </div>
                     <div class="price-row">
                         <span><strong>Проба 750:</strong></span>
                         <input type="number"
+                               id="gold_750_price"
                                name="gold_750_price"
                                step="0.01"
                                min="0"
                                value="{% if show_results %}{{ calculated_prices.gold_750|floatformat:2 }}{% endif %}"
                                class="new-price-input"
-                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                               placeholder="Автоматический расчет"
+                               data-required-for-save="true">
                         <span>руб./г</span>
                     </div>
                     <div class="price-row">
                         <span><strong>Проба 850:</strong></span>
                         <input type="number"
+                               id="gold_850_price"
                                name="gold_850_price"
                                step="0.01"
                                min="0"
                                value="{% if show_results %}{{ calculated_prices.gold_850|floatformat:2 }}{% endif %}"
                                class="new-price-input"
-                               {% if not show_results %}placeholder="Автоматический расчет"{% endif %}>
+                               placeholder="Автоматический расчет"
+                               data-required-for-save="true">
                         <span>руб./г</span>
                     </div>
                 </div>
@@ -435,11 +455,11 @@
 
             <div class="button-group">
                 {% if not show_results %}
-                <button type="submit" name="calculate" class="btn btn-primary">
+                <button type="submit" name="calculate" id="calculateBtn" class="btn btn-primary">
                     🔢 Рассчитать
                 </button>
                 {% else %}
-                <button type="submit" name="save" class="btn btn-success">
+                <button type="submit" name="save" id="saveBtn" class="btn btn-success">
                     💾 Сохранить новые цены
                 </button>
                 <button type="submit" name="recalculate" class="btn btn-primary">
@@ -459,45 +479,145 @@
 {% block extrajs %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Авторасчет цен на золото при изменении цены 585
-    const gold585Input = document.getElementById('gold_585_price');
     const form = document.getElementById('priceForm');
+    const gold585Input = document.getElementById('gold_585_price');
+    const calculateBtn = document.getElementById('calculateBtn');
+    const saveBtn = document.getElementById('saveBtn');
 
+    // Функция для автоматического расчета и заполнения полей
+    function autoCalculateAndFill() {
+        const price = parseFloat(gold585Input.value);
+        if (!isNaN(price) && price > 0) {
+            // Рассчитываем коэффициенты
+            const coefficients = {
+                375: 375 / 585,
+                500: 500 / 585,
+                750: 750 / 585,
+                850: 850 / 585
+            };
+
+            // Заполняем все поля рассчитанными значениями
+            for (const [sample, coeff] of Object.entries(coefficients)) {
+                const input = document.getElementById(`gold_${sample}_price`);
+                if (input) {
+                    const calculated = (price * coeff).toFixed(2);
+                    input.value = calculated;
+                }
+            }
+
+            // Заполняем поле для пробы 585
+            const gold585Field = document.getElementById('gold_585_price_field');
+            if (gold585Field) {
+                gold585Field.value = price.toFixed(2);
+            }
+
+            return true;
+        }
+        return false;
+    }
+
+    // Автоматически рассчитываем при изменении цены 585
     if (gold585Input) {
         gold585Input.addEventListener('input', function() {
-            const price = parseFloat(this.value);
-            if (!isNaN(price) && price > 0) {
-                // Рассчитываем коэффициенты
-                const coefficients = {
-                    375: 375 / 585,
-                    500: 500 / 585,
-                    750: 750 / 585,
-                    850: 850 / 585
-                };
+            // Только если поля пустые, заполняем автоматически
+            const gold375 = document.getElementById('gold_375_price');
+            if (!gold375.value) {
+                autoCalculateAndFill();
+            }
+        });
+    }
 
-                // Обновляем поля
-                for (const [sample, coeff] of Object.entries(coefficients)) {
-                    const input = document.querySelector(`input[name="gold_${sample}_price"]`);
-                    if (input && (!input.value || input.value === '')) {
-                        const calculated = (price * coeff).toFixed(2);
-                        input.value = calculated;
-                    }
+    // Автозаполнение при загрузке страницы с расчетами
+    function autoFillOnLoad() {
+        if (!gold585Input || !gold585Input.value) return;
+
+        // Заполняем поля только если они пустые
+        const gold375 = document.getElementById('gold_375_price');
+        if (gold375 && !gold375.value) {
+            autoCalculateAndFill();
+        }
+    }
+
+    // Запускаем при загрузке
+    autoFillOnLoad();
+
+    // Обработчик отправки формы для кнопки "Рассчитать"
+    if (calculateBtn) {
+        // Удаляем стандартное поведение и добавляем свое
+        form.addEventListener('submit', function(e) {
+            if (e.submitter && e.submitter.name === 'calculate') {
+                // Отключаем валидацию для полей с ценами
+                const priceInputs = form.querySelectorAll('input[data-required-for-save="true"]');
+                priceInputs.forEach(input => {
+                    input.removeAttribute('required');
+                });
+
+                // Автоматически заполняем поля перед отправкой
+                if (!autoCalculateAndFill()) {
+                    e.preventDefault();
+                    alert('Пожалуйста, введите цену на золото 585 пробы');
+                    return false;
                 }
 
-                // Обновляем поле для пробы 585 (только для отображения)
-                const gold585Display = document.querySelector('input[name="gold_585_price_field"]');
-                if (gold585Display) {
-                    gold585Display.value = price.toFixed(2);
+                // Проверяем, заполнены ли базовые поля
+                if (!gold585Input.value || !document.getElementById('silver_925_price').value) {
+                    e.preventDefault();
+                    alert('Пожалуйста, заполните цены на золото 585 и серебро 925');
+                    return false;
                 }
             }
         });
     }
 
-    // Автоматический расчет при загрузке страницы, если есть цена 585
-    if (gold585Input && gold585Input.value) {
-        const event = new Event('input');
-        gold585Input.dispatchEvent(event);
+    // Обработчик для кнопки "Сохранить"
+    if (saveBtn) {
+        form.addEventListener('submit', function(e) {
+            if (e.submitter && e.submitter.name === 'save') {
+                // Включаем валидацию для всех необходимых полей
+                const priceInputs = form.querySelectorAll('input[data-required-for-save="true"]');
+                priceInputs.forEach(input => {
+                    input.setAttribute('required', 'required');
+                });
+
+                // Проверяем все поля
+                let isValid = true;
+                const requiredFields = [
+                    'gold_585_price',
+                    'silver_925_price',
+                    'gold_375_price',
+                    'gold_500_price',
+                    'gold_585_price_field',
+                    'gold_750_price',
+                    'gold_850_price'
+                ];
+
+                for (const fieldName of requiredFields) {
+                    const field = document.getElementById(fieldName) || document.querySelector(`[name="${fieldName}"]`);
+                    if (field && !field.value) {
+                        isValid = false;
+                        field.style.borderColor = 'red';
+                        setTimeout(() => {
+                            field.style.borderColor = '';
+                        }, 3000);
+                    }
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Пожалуйста, заполните все поля');
+                    return false;
+                }
+            }
+        });
     }
+
+    // Обработчик для кнопки "Пересчитать"
+    form.addEventListener('submit', function(e) {
+        if (e.submitter && e.submitter.name === 'recalculate') {
+            // Автоматически заполняем все поля перед пересчетом
+            autoCalculateAndFill();
+        }
+    });
 });
 </script>
 {% endblock %}
