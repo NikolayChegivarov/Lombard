@@ -1,5 +1,5 @@
 from django.urls import path
-from .views.base import index, prices_view, questions_answers_view, news_view, contacts_view
+from .views.base import index, prices_view, questions_answers_view, news_view, contacts_view, about_us
 from .views import branches, conditions
 
 urlpatterns = [
@@ -10,4 +10,5 @@ urlpatterns = [
     path('questions-answers/', questions_answers_view, name='questions_answers'),
     path('news/', news_view, name='news'),
     path('contacts/', contacts_view, name='contacts'),
+    path('about/', about_us, name='about_us'),
 ]
