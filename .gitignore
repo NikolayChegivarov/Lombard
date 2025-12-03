@@ -4,3 +4,4 @@
 __pycache__/
 DRAFT.md
 */migrations/*.py
+staticfiles/

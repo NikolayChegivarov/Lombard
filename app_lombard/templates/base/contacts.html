@@ -1,0 +1,163 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Контакты - Ломбард Народный{% endblock %}
+
+{% block content %}
+<div class="contacts-container">
+    <h1>Контакты</h1>
+    
+    <div class="contact-card">
+        <h2>ООО "Ломбард Народный"</h2>
+
+        <div class="contact-details">
+            <div class="contact-item">
+                <strong>Юридический адрес:</strong>
+                <p>156010, г. Кострома, ул. Самоковская, д.10Б</p>
+            </div>
+
+            <div class="contact-item">
+                <strong>Почтовый адрес:</strong>
+                <p>156010, г. Кострома, ул. Самоковская, д.10Б</p>
+            </div>
+
+            <div class="contact-item">
+                <strong>ОГРН:</strong>
+                <p>1154401006814</p>
+            </div>
+
+            <div class="contact-item">
+                <strong>ИНН:</strong>
+                <p>4401164758</p>
+            </div>
+
+            <div class="contact-item">
+                <strong>КПП:</strong>
+                <p>440101001</p>
+            </div>
+
+            <div class="contact-item">
+                <strong>Электронная почта:</strong>
+                <p><a href="mailto:info@lombardn.ru">info@lombardn.ru</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .contacts-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+    }
+
+    h2 {
+        color: #2c3e50;
+        margin-bottom: 25px;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 10px;
+        text-align: center;
+    }
+
+    .contact-card {
+        background: #f8f9fa;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    .contact-details {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .contact-item {
+        padding: 15px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .contact-item:last-child {
+        border-bottom: none;
+    }
+
+    .contact-item strong {
+        color: #2c3e50;
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
+
+    .contact-item p {
+        margin: 0;
+        color: #555;
+        font-size: 1.1rem;
+    }
+
+    .contact-item a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+
+    .contact-item a:hover {
+        text-decoration: underline;
+        color: #2980b9;
+    }
+
+    /* Адаптивность для мобильных */
+    @media (max-width: 768px) {
+        .contacts-container {
+            padding: 15px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .contact-card {
+            padding: 25px 20px;
+        }
+
+        .contact-item strong {
+            font-size: 1rem;
+        }
+
+        .contact-item p,
+        .contact-item a {
+            font-size: 1rem;
+        }
+
+        .contact-details {
+            gap: 15px;
+        }
+
+        .contact-item {
+            padding: 12px 0;
+        }
+    }
+
+    @media (max-width: 480px) {
+        h1 {
+            font-size: 1.8rem;
+        }
+
+        h2 {
+            font-size: 1.4rem;
+        }
+
+        .contact-card {
+            padding: 20px 15px;
+        }
+    }
+</style>
+{% endblock %}

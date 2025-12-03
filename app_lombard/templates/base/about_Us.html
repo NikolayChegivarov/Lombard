@@ -1,0 +1,291 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<style>
+    .about-hero {
+        background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+        margin-bottom: 3rem;
+        border-radius: 0 0 20px 20px;
+    }
+    
+    .about-hero h1 {
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        font-weight: bold;
+    }
+    
+    .about-hero .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .stats-counter {
+        background: white;
+        color: #2c3e50;
+        padding: 1.5rem;
+        border-radius: 15px;
+        display: inline-block;
+        margin-top: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .stats-counter .count {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #e74c3c;
+        line-height: 1;
+    }
+    
+    .about-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .mission-section {
+        background: #f8f9fa;
+        padding: 3rem;
+        border-radius: 15px;
+        margin-bottom: 3rem;
+        border-left: 5px solid #3498db;
+    }
+    
+    .principles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 3rem 0;
+    }
+    
+    .principle-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: transform 0.3s ease;
+    }
+    
+    .principle-card:hover {
+        transform: translateY(-10px);
+    }
+    
+    .principle-card h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .principle-card h3 i {
+        color: #3498db;
+    }
+    
+    .benefits-section {
+        background: linear-gradient(135deg, #e8f4fc 0%, #f0f7fb 100%);
+        padding: 3rem;
+        border-radius: 15px;
+        margin: 3rem 0;
+    }
+    
+    .benefits-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .benefits-list li {
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 1.1rem;
+    }
+    
+    .benefits-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .benefits-list li:before {
+        content: "✅";
+        font-size: 1.5rem;
+    }
+    
+    .highlight-box {
+        background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+        color: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        text-align: center;
+        margin: 3rem 0;
+    }
+    
+    .highlight-box h3 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .contact-cta {
+        text-align: center;
+        margin-top: 3rem;
+        padding: 3rem;
+        background: #f8f9fa;
+        border-radius: 15px;
+    }
+    
+    .cta-button {
+        display: inline-block;
+        background: #e74c3c;
+        color: white;
+        padding: 1rem 2.5rem;
+        text-decoration: none;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        margin-top: 1.5rem;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .cta-button:hover {
+        background: #c0392b;
+        transform: scale(1.05);
+        box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+    }
+    
+    @media (max-width: 768px) {
+        .about-hero {
+            padding: 2rem 1rem;
+        }
+        
+        .about-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .principles-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .mission-section,
+        .benefits-section,
+        .highlight-box {
+            padding: 2rem 1rem;
+        }
+        
+        .stats-counter .count {
+            font-size: 2.5rem;
+        }
+    }
+</style>
+
+<div class="about-hero">
+    <div class="container">
+        <h1>Мы — Ваш надежный финансовый помощник</h1>
+        
+        <div class="stats-counter">
+            <div class="count">{{ active_branches_count }}+</div>
+            <div class="label">Филиалов по России</div>
+        </div>
+    </div>
+</div>
+
+<div class="container about-content">
+    <section class="mission-section">
+        <h2>Наша миссия</h2>
+        <p style="font-size: 1.1rem; line-height: 1.8;">
+            Мы — современный ломбард, который переосмыслил традиционный подход. 
+            Наша цель — не просто оценить и принять ваше имущество, а стать для вас быстрым 
+            и понятным финансовым решением в сложной ситуации.
+        </p>
+    </section>
+    
+    <section>
+        <h2>Для тех, кому нужны деньги</h2>
+        <p style="margin-bottom: 2rem; font-size: 1.1rem;">
+            Мы предлагаем честную оценку, максимально высокий процент от стоимости залога 
+            и прозрачные условия. Получите деньги за 15 минут без справок о доходах и кредитных историй. 
+            Ваши вещи для нас — не просто товар, а ответственность. Мы обеспечиваем их полную сохранность 
+            на время действия договора.
+        </p>
+    </section>
+    
+    <section class="principles-section">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Наши принципы</h2>
+        <div class="principles-grid">
+            <div class="principle-card">
+                <h3>🔒 Конфиденциальность</h3>
+                <p>Все сделки строго конфиденциальны. Мы гарантируем полную приватность ваших операций.</p>
+            </div>
+            
+            <div class="principle-card">
+                <h3>👔 Профессионализм</h3>
+                <p>Оценку проводят эксперты с многолетним опытом работы с драгоценными металлами и ювелирными изделиями.</p>
+            </div>
+            
+            <div class="principle-card">
+                <h3>🛡️ Безопасность</h3>
+                <p>Современная система охраны и видеонаблюдения обеспечивает сохранность вашего имущества.</p>
+            </div>
+            
+            <div class="principle-card">
+                <h3>🤝 Уважение</h3>
+                <p>Мы с пониманием относимся к ситуации каждого клиента и создаем комфортные условия сотрудничества.</p>
+            </div>
+        </div>
+    </section>
+    
+    <div class="highlight-box">
+        <h3>Почему выбирают нас?</h3>
+        <p style="font-size: 1.2rem; opacity: 0.95;">
+            Мы создали сервис, который сочетает в себе скорость, надежность и человеческое отношение
+        </p>
+    </div>
+    
+    <section class="benefits-section">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Наши преимущества</h2>
+        <ul class="benefits-list">
+            <li><strong>Мгновенная выдача наличных средств</strong> — получите деньги в течение 15 минут после оценки</li>
+            <li><strong>Справедливая рыночная оценка</strong> — работаем открыто и честно, без занижения стоимости</li>
+            <li><strong>Гарантия выкупа</strong> — вы всегда можете вернуть свою вещь в оговоренный срок</li>
+            <li><strong>Прозрачный договор</strong> — никаких скрытых комиссий и дополнительных платежей</li>
+            <li><strong>Опытные оценщики</strong> — специалисты с сертификатами и многолетним стажем</li>
+            <li><strong>Удобные условия хранения</strong> — современные сейфы и система климат-контроля</li>
+        </ul>
+    </section>
+    
+    <section class="contact-cta">
+        <h2>Готовы получить деньги уже сегодня?</h2>
+        <p style="font-size: 1.1rem; max-width: 800px; margin: 0 auto 1.5rem;">
+            Приезжайте в любой из наших {{ active_branches_count }} филиалов по России. 
+            Наши специалисты проведут бесплатную оценку и предложат лучшие условия.
+        </p>
+        <a href="{% url 'branches' %}" class="cta-button">Найти ближайший филиал</a>
+    </section>
+</div>
+
+<script>
+    // Анимация счетчика (опционально)
+    document.addEventListener('DOMContentLoaded', function() {
+        const counterElement = document.querySelector('.count');
+        const targetCount = parseInt(counterElement.textContent);
+        let currentCount = 0;
+        const increment = Math.ceil(targetCount / 50);
+        
+        const timer = setInterval(() => {
+            currentCount += increment;
+            if (currentCount >= targetCount) {
+                currentCount = targetCount;
+                clearInterval(timer);
+            }
+            counterElement.textContent = currentCount + '+';
+        }, 30);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,43 @@
+# ✅ Единый стиль окончаний строк для команды
+# ✅ Автоматическая конвертация под ОС
+# ✅ Защита бинарных файлов от повреждения
+# ✅ Корректная работа на Linux-сервере
+
+# Установите LF для всех текстовых файлов
+* text=auto eol=lf
+
+# Текстовые файлы (явно)
+*.py text eol=lf
+*.html text eol=lf
+*.htm text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.xml text eol=lf
+*.txt text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.conf text eol=lf
+
+# Шаблоны Django
+*.tpl text eol=lf
+
+# Бинарные файлы (не трогать!)
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.rar binary
+*.exe binary
+*.dll binary
