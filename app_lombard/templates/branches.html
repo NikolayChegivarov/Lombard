@@ -1,3 +1,5 @@
+[file name]: branches.html
+[file content begin]
 {% extends 'base/base.html' %}
 {% load static %}
 
@@ -119,7 +121,7 @@
     </div>
 </div>
 
-<!-- Стили -->
+<!-- Стили с новой цветовой схемой -->
 <style>
 .branches-container {
     max-width: 1200px;
@@ -139,7 +141,7 @@
 
 .page-header h1 {
     margin: 0;
-    color: #2c3e50;
+    color: #D90416; /* Основной красный цвет */
     font-size: 2.2em;
     font-weight: 700;
 }
@@ -155,12 +157,12 @@
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #D90416 0%, #A8000F 100%); /* Красный градиент */
     border-radius: 8px;
     color: white;
     min-width: 120px;
     height: 50px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(217, 4, 22, 0.2);
 }
 
 .header-stat .stat-number {
@@ -179,7 +181,7 @@
 }
 
 .cities-section h2 {
-    color: #2c3e50;
+    color: #D90416; /* Основной красный */
     margin-bottom: 20px;
     font-size: 1.8em;
 }
@@ -193,24 +195,24 @@
 /* Карточка города */
 .city-card {
     background: white;
-    border: 2px solid #e8ecef;
+    border: 2px solid #f0e6d3; /* Светло-золотой оттенок */
     border-radius: 12px;
     padding: 0;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     overflow: hidden;
 }
 
 .city-card:hover {
-    border-color: #667eea;
+    border-color: #D9B573; /* Золотой цвет */
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 4px 15px rgba(217, 181, 115, 0.2);
 }
 
 .city-card.active {
-    border-color: #667eea;
-    background: #f8faff;
+    border-color: #D90416; /* Красный для активного состояния */
+    background: #fff8f0; /* Очень светлый золотой фон */
 }
 
 .city-main {
@@ -224,6 +226,7 @@
 .city-icon {
     font-size: 1.5em;
     margin-right: 15px;
+    color: #D90416; /* Красный для иконки */
 }
 
 .city-name {
@@ -234,7 +237,7 @@
 }
 
 .city-branch-count {
-    background: #667eea;
+    background: #D90416; /* Красный фон */
     color: white;
     padding: 6px 12px;
     border-radius: 20px;
@@ -252,7 +255,7 @@
 
 .city-card.active .city-toggle {
     transform: rotate(180deg);
-    color: #667eea;
+    color: #D90416; /* Красный для активного состояния */
 }
 
 /* Детали города */
@@ -270,11 +273,11 @@
 }
 
 .city-title {
-    color: #2c3e50;
+    color: #D90416; /* Красный для заголовка */
     margin: 30px 25px 20px 25px;
     font-size: 1.5em;
     font-weight: 600;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid #f0e6d3; /* Золотая граница */
     padding-bottom: 10px;
 }
 
@@ -284,7 +287,7 @@
 }
 
 .city-map h4 {
-    color: #2c3e50;
+    color: #D90416; /* Красный */
     margin-bottom: 15px;
     font-size: 1.2em;
 }
@@ -292,6 +295,7 @@
 .city-branches-map {
     height: 350px;
     border-radius: 12px;
+    border: 2px solid #f0e6d3; /* Золотая граница */
 }
 
 /* Список филиалов города */
@@ -300,12 +304,12 @@
 }
 
 .city-branches h4 {
-    color: #2c3e50;
+    color: #D90416; /* Красный */
     margin-bottom: 20px;
     font-size: 1.2em;
 }
 
-/* Остальные стили для филиалов (остаются прежними) */
+/* Стили для филиалов */
 .branches-grid {
     display: flex;
     flex-direction: column;
@@ -314,23 +318,23 @@
 
 .branch-compact-card {
     background: white;
-    border: 1px solid #e8ecef;
+    border: 1px solid #f0e6d3; /* Светло-золотая граница */
     border-radius: 8px;
     padding: 0;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(217, 181, 115, 0.1);
     overflow: hidden;
 }
 
 .branch-compact-card:hover {
-    border-color: #667eea;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+    border-color: #D9B573; /* Золотой при наведении */
+    box-shadow: 0 2px 8px rgba(217, 181, 115, 0.15);
 }
 
 .branch-compact-card.active {
-    border-color: #667eea;
-    background: #f8faff;
+    border-color: #D90416; /* Красный для активного */
+    background: #fff8f0; /* Светлый золотой фон */
 }
 
 .branch-compact-main {
@@ -350,7 +354,7 @@
 
 .location-icon {
     font-size: 1.2em;
-    color: #667eea;
+    color: #D90416; /* Красный для иконки локации */
 }
 
 .location-info {
@@ -375,13 +379,13 @@
 
 .branch-compact-card.active .branch-toggle {
     transform: rotate(180deg);
-    color: #667eea;
+    color: #D90416; /* Красный для активного состояния */
 }
 
 .branch-additional-info {
     display: none;
-    border-top: 1px solid #e8ecef;
-    background: #fafbfc;
+    border-top: 1px solid #f0e6d3; /* Золотая граница */
+    background: #fef9f2; /* Очень светлый золотой фон */
 }
 
 .branch-compact-card.active .branch-additional-info {
@@ -408,7 +412,7 @@
 }
 
 .first-row {
-    border-bottom: 1px solid #e8ecef;
+    border-bottom: 1px solid #f0e6d3; /* Золотая граница */
     padding-bottom: 12px;
 }
 
@@ -420,6 +424,7 @@
 
 .info-icon {
     font-size: 1em;
+    color: #D90416; /* Красный для иконки телефона */
 }
 
 .phone-number {
@@ -472,20 +477,20 @@
     padding: 8px 4px;
     border-radius: 6px;
     background: white;
-    border: 1px solid #e8ecef;
+    border: 1px solid #f0e6d3; /* Золотая граница */
     text-align: center;
     transition: all 0.2s ease;
 }
 
 .schedule-day-compact:hover {
-    border-color: #667eea;
+    border-color: #D90416; /* Красный при наведении */
     transform: translateY(-1px);
 }
 
 .schedule-day-compact.closed {
     background: #ffeaea;
     border-color: #f5b7b1;
-    color: #e74c3c;
+    color: #D90416; /* Красный для закрытых дней */
 }
 
 .day-abbr {
@@ -496,7 +501,7 @@
 }
 
 .schedule-day-compact.closed .day-abbr {
-    color: #e74c3c;
+    color: #D90416; /* Красный для аббревиатур закрытых дней */
 }
 
 .time-compact {
@@ -506,7 +511,7 @@
 }
 
 .schedule-day-compact.closed .time-compact {
-    color: #e74c3c;
+    color: #D90416; /* Красный для времени закрытых дней */
 }
 
 /* Нет городов */
@@ -514,16 +519,46 @@
     text-align: center;
     padding: 60px 40px;
     color: #6c757d;
-    background: #f8f9fa;
+    background: #fef9f2; /* Светлый золотой фон */
     border-radius: 15px;
-    border: 2px dashed #dee2e6;
+    border: 2px dashed #D9B573; /* Золотая пунктирная граница */
     grid-column: 1 / -1;
 }
 
 .no-cities-icon {
     font-size: 3em;
     margin-bottom: 15px;
-    opacity: 0.5;
+    color: #D90416; /* Красный для иконки */
+    opacity: 0.7;
+}
+
+/* Акцентные цвета в ссылках и кнопках (если будут добавлены позже) */
+.accent-button {
+    background: #D90416;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.accent-button:hover {
+    background: #A8000F; /* Темнее красный */
+}
+
+.gold-button {
+    background: #D9B573;
+    color: #2c3e50;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.gold-button:hover {
+    background: #C9A563; /* Темнее золотой */
 }
 
 /* Адаптивность */
@@ -643,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {
                             balloonContent: `
                                 <div style="padding: 10px; min-width: 200px;">
-                                    <h3 style="margin: 0 0 10px 0;">${branch.city}</h3>
+                                    <h3 style="margin: 0 0 10px 0; color: #D90416;">${branch.city}</h3>
                                     <p><strong>📍 Адрес:</strong> ${branch.address}</p>
                                     <p><strong>📞 Телефон:</strong> ${branch.phone}</p>
                                     <p><strong>🕒 Статус:</strong> <span style="color: ${branch.status_color}">${branch.status_text}</span></p>
@@ -725,3 +760,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
+[file content end]
