@@ -1,25 +1,142 @@
-{% extends 'base.html' %}
+{% extends 'base/base.html' %}
 
 {% block title %}Главная - Ломбард Народный{% endblock %}
 
 {% block content %}
 {% load static %}
+<style>
+    /* Стили для заголовка с акцентами */
+    .main-header {
+        text-align: center;
+        margin-bottom: 40px;
+        padding: 30px 20px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1);
+    }
+
+    .main-title {
+        font-size: 2.8rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .main-subtitle {
+        font-size: 1.6rem;
+        color: #34495e;
+        display: flex;
+        justify-content: center;
+        gap: 25px;
+        font-weight: 600;
+    }
+
+    .subtitle-item {
+        position: relative;
+        padding: 0 15px;
+    }
+
+    .subtitle-item:not(:last-child)::after {
+        content: '•';
+        position: absolute;
+        right: -20px;
+        color: #3498db;
+    }
+
+    /* Стили для квадрантной сетки */
+    .quadrant-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 25px;
+        max-width: 1200px;
+        margin: 0 auto;
+        height: 65vh;
+    }
+
+    .quadrant {
+        display: block;
+        position: relative;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .quadrant::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.5));
+        z-index: 1;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .quadrant:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+    }
+
+    .quadrant:hover::before {
+        opacity: 1;
+    }
+
+    .quadrant-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .quadrant:hover .quadrant-image {
+        transform: scale(1.1);
+    }
+</style>
+
+<!-- Заголовок с лозунгом -->
+<div class="main-header">
+    <h1 class="main-title">Ломбард Народный</h1>
+    <div class="main-subtitle">
+        <span class="subtitle-item">Быстро</span>
+        <span class="subtitle-item">Честно</span>
+        <span class="subtitle-item">Выгодно</span>
+    </div>
+</div>
+
+<!-- Квадрантная сетка -->
 <div class="quadrant-grid">
     <!-- Левый верхний - Филиалы -->
     <a href="{% url 'branches' %}" class="quadrant">
         <img src="{% static 'branches.jpg' %}" alt="Филиалы" class="quadrant-image">
     </a>
-    
+
     <!-- Правый верхний - Цены -->
     <a href="{% url 'prices' %}" class="quadrant">
         <img src="{% static 'prices.jpg' %}" alt="Цены" class="quadrant-image">
     </a>
-    
+
     <!-- Левый нижний - Условия -->
     <a href="{% url 'conditions' %}" class="quadrant">
         <img src="{% static 'conditions.jpg' %}" alt="Условия" class="quadrant-image">
     </a>
-    
+
     <!-- Правый нижний - Вопросы и ответы -->
     <a href="{% url 'questions_answers' %}" class="quadrant">
         <img src="{% static 'questions_answers.jpg' %}" alt="Вопросы и ответы" class="quadrant-image">
