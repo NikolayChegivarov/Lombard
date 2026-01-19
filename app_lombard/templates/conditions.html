@@ -1,10 +1,299 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Условия - Ломбард Народный</title>
+    {% load static %}
+    <style>
+        /* ============= ОБЩИЕ СТИЛИ ============= */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ============= ШАПКА САЙТА ============= */
+        .header {
+            background: none; /* УБИРАЕМ градиентный фон */
+            border-bottom: none; /* УБИРАЕМ золотую линию под шапкой */
+            width: 100%; /* Шапка занимает всю ширину экрана */
+            padding: 15px 0; /* Вертикальные отступы внутри шапки */
+            display: flex; /* Используем flexbox для центрирования */
+            justify-content: center; /* Центрируем по горизонтали */
+            align-items: center; /* Центрируем по вертикали */
+        }
+
+        /* ============= КОНТЕЙНЕР ШАПКИ ============= */
+        .header-container {
+            width: 100%; /* Контейнер занимает всю доступную ширину */
+            max-width: 1200px; /* Максимальная ширина контейнера (адаптируется под контент) */
+            margin: 0 auto; /* Автоматические отступы по бокам для центрирования */
+            padding: 0 20px; /* Горизонтальные отступы внутри контейнера (20px слева и справа) */
+            text-align: center; /* Выравнивание содержимого по центру */
+        }
+
+        /* ============= СТИЛИ ЛОГОТИПА ============= */
+        .logo {
+            width: 100%; /* Логотип растягивается на всю ширину контейнера */
+            height: auto; /* Высота автоматически рассчитывается для сохранения пропорций */
+            max-height: 220px; /* МАКСИМАЛЬНАЯ высота логотипа (увеличь эту цифру чтобы сделать лого выше) */
+            display: block; /* Логотип отображается как блочный элемент */
+            margin: 0 auto; /* Автоматические отступы для центрирования */
+            border-radius: 15px; /* Добавляем скругление углов */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* ДОБАВЛЯЕМ легкую тень для объема */
+        }
+
+        /* ============= СТИЛИ ДЛЯ КОНТЕНТА УСЛОВИЙ ============= */
+        .conditions-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-top: 30px;
+        }
+
+        .conditions-title {
+            color: #2c3e50;
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        .section-title {
+            color: #2c3e50;
+            font-size: 22px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .section-text {
+            font-size: 16px;
+            line-height: 1.7;
+            margin-bottom: 10px;
+        }
+
+        .highlight {
+            background-color: #fffacd;
+            padding: 15px;
+            border-left: 4px solid #3498db;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .warning-list {
+            background-color: #fff5f5;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .warning-title {
+            color: #c0392b;
+            font-size: 20px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .warning-item {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .warning-item:before {
+            content: "•";
+            color: #e74c3c;
+            font-size: 20px;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+
+        /* ============= ОСНОВНОЙ КОНТЕНТ ============= */
+        .main-content {
+            min-height: calc(100vh - 300px); /* Минимальная высота, учитывая шапку и футер */
+            padding: 30px 0;
+        }
+
+        /* ============= ФУТЕР ============= */
+        .footer {
+            background-color: #2c3e50;
+            color: #fff;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-info p {
+            margin: 0;
+            color: #ecf0f1;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+
+        /* ============= БОЛЬШИЕ ЭКРАНЫ (ПК, НОУТБУКИ) ============= */
+        @media (min-width: 1200px) {
+            .logo {
+                max-height: 350px;
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* ============= ПЛАНШЕТЫ ============= */
+        @media (max-width: 1199px) and (min-width: 768px) {
+            .logo {
+                max-height: 190px;
+                box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        /* ============= МОБИЛЬНЫЕ ТЕЛЕФОНЫ ============= */
+        @media (max-width: 767px) {
+            .logo {
+                max-height: 150px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+                padding: 10px 0;
+            }
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+            .main-content {
+                padding: 20px 0;
+            }
+            .conditions-content {
+                padding: 20px;
+            }
+            .conditions-title {
+                font-size: 26px;
+            }
+            .section-title {
+                font-size: 19px;
+            }
+        }
+
+        /* ============= ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ ============= */
+        @media (max-width: 480px) {
+            .logo {
+                max-height: 130px;
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            }
+            .container {
+                padding: 0 15px;
+            }
+            .conditions-content {
+                padding: 15px;
+            }
+            .conditions-title {
+                font-size: 22px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- ШАПКА -->
+    <header class="header">
+        <div class="header-container">
+            <a href="{% url 'index' %}">
+                <img src="{% static 'logo.jpg' %}" alt="Ломбард Народный" class="logo">
+            </a>
+        </div>
+    </header>
 
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="main-content">
+        <div class="container">
+            <div class="conditions-content">
+                <h1 class="conditions-title">Условия сотрудничества</h1>
+                
+                <div class="section">
+                    <h2 class="section-title">Основные требования</h2>
+                    <p class="section-text">Договор займа заключается только при наличии паспорта, возраст заемщика не меньше 18 лет. Договор займа оформляется выдачей ломбардом залогового билета.</p>
+                    <p class="section-text">Залогодателем выступает гражданин-заемщик, которому эти вещи принадлежат на праве собственности (п. 3 ст. 2, п. 1 ст. 7 Закона о ломбардах). Таким образом, залог имущества, принадлежащего третьему лицу, здесь недопустим.</p>
+                    <p class="section-text">Займ предоставляется в день посещения ломбарда.</p>
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Вид кредита</h2>
+                    <p class="section-text">Вид потребительского кредита (займа): заем под залог движимого имущества, предназначенных для личного потребления.</p>
+                </div>
+
+                <div class="highlight">
+                    Низкая процентная ставка. Вы участвуете в Программе лояльности для постоянных клиентов (повышенная оценка изделий, льготный процент).
+                </div>
+
+                <div class="section">
+                    <h2 class="section-title">Мы не принимаем в залог:</h2>
+                    <div class="warning-list">
+                        <h3 class="warning-title">Запрещенные к приему предметы:</h3>
+                        
+                        <div class="warning-item">сырье камней и полуфабрикаты, золото, платину, палладий и серебро в самородках, шлихе, пластинах, проволоке, деталях;</div>
+                        <div class="warning-item">сусальное золото, полуфабрикаты ювелирного и зубопротезного производства (кроме коронок и дисков);</div>
+                        <div class="warning-item">драгоценные металлы в изделиях производственного лабораторного назначения (заклепки, лабораторная посуда и т.д.);</div>
+                        <div class="warning-item">драгоценные металлы в виде производственных отходов (опилки, стружки и др.);</div>
+                        <div class="warning-item">драгоценные камни (алмазы, рубины, сапфиры, изумруды) и природный жемчуг в необработанном виде;</div>
+                        <div class="warning-item">предметы, изъятые из гражданского оборота, или предметы, на продажу которых установлен особый порядок (холодное, огнестрельное оружие и др.);</div>
+                        <div class="warning-item">ордена и медали, кроме памятных и юбилейных (именных), содержащие драгоценные металлы;</div>
+                        <div class="warning-item">ценности у детей и подростков, не достигших восемнадцатилетнего возраста;</div>
+                        <div class="warning-item">ценности у государственных и общественных предприятий, организаций, учреждений и юридических лиц.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ФУТЕР -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>&copy; 2024 Ломбард Народный. Все права защищены.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="{% url 'about_us' %}">О нас</a>
+                    <a href="{% url 'contacts' %}">Контакты</a>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
