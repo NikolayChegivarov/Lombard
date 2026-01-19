@@ -14,76 +14,26 @@
         margin: 0 auto;
     }
 
-    /* Стили для заголовка с фирменными цветами */
-    .main-header {
+    /* Простая надпись с лозунгом */
+    .slogan {
         text-align: center;
         margin: 0 auto 40px;
-        padding: 40px 20px;
-        background: linear-gradient(135deg, #fff8f0 0%, #fef9f2 100%); /* Золотистый градиент */
-        border-radius: 15px;
-        box-shadow: 0 4px 15px rgba(217, 181, 115, 0.15);
-        position: relative;
-        overflow: hidden;
-        border: 2px solid #f0e6d3; /* Светло-золотая граница */
+        padding: 0;
         width: 100%;
     }
 
-    .main-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #D9B573, #D90416, #D9B573); /* Золотой-красный-золотой градиент */
-    }
-
-    .main-title {
-        font-size: 3rem;
-        font-weight: 800;
-        color: #D9B573; /* Золотой основной цвет */
-        margin-bottom: 20px;
-        letter-spacing: 1px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .main-subtitle {
+    .slogan-text {
         font-size: 1.8rem;
         display: flex;
         justify-content: center;
-        gap: 40px;
+        align-items: center;
+        gap: 30px;
         font-weight: 600;
-    }
-
-    .subtitle-item {
-        position: relative;
-        padding: 10px 20px;
         color: #2c3e50;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 3px 10px rgba(217, 181, 115, 0.2);
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
+        margin: 0;
     }
 
-    .subtitle-item:hover {
-        transform: translateY(-5px);
-        border-color: #D9B573; /* Золотая граница при наведении */
-        box-shadow: 0 6px 20px rgba(217, 181, 115, 0.3);
-        color: #D90416; /* Красный текст при наведении */
-    }
-
-    .subtitle-item:not(:last-child)::after {
-        content: '★'; /* Звезда вместо точки */
-        position: absolute;
-        right: -25px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #D9B573; /* Золотой цвет */
-        font-size: 1.2rem;
-    }
-
-    /* Стили для адаптивной сетки с правильными пропорциями */
+    /* Стили для адаптивной сетки */
     .quadrant-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -99,8 +49,8 @@
         border-radius: 12px;
         box-shadow: 0 6px 12px rgba(217, 181, 115, 0.2);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border: 2px solid #f0e6d3; /* Светло-золотая граница */
-        aspect-ratio: 1 / 1; /* Всегда квадрат */
+        border: 2px solid #f0e6d3;
+        aspect-ratio: 1 / 1;
     }
 
     .quadrant::before {
@@ -110,7 +60,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(to bottom, transparent 30%, rgba(217, 4, 22, 0.4) 100%); /* Красный градиент */
+        background: linear-gradient(to bottom, transparent 30%, rgba(217, 4, 22, 0.4) 100%);
         z-index: 1;
         opacity: 0.7;
         transition: opacity 0.3s ease;
@@ -119,14 +69,13 @@
     .quadrant:hover {
         transform: translateY(-8px);
         box-shadow: 0 12px 24px rgba(217, 181, 115, 0.4);
-        border-color: #D9B573; /* Золотая граница при наведении */
+        border-color: #D9B573;
     }
 
     .quadrant:hover::before {
         opacity: 0.9;
     }
 
-    /* Контейнер для изображения с центрированием */
     .image-container {
         width: 100%;
         height: 100%;
@@ -137,8 +86,8 @@
     .quadrant-image {
         width: 100%;
         height: 100%;
-        object-fit: cover; /* Обрезаем изображение, чтобы заполнить квадрат */
-        object-position: center; /* Центрируем изображение */
+        object-fit: cover;
+        object-position: center;
         transition: transform 0.5s ease;
     }
 
@@ -146,7 +95,6 @@
         transform: scale(1.1);
     }
 
-    /* Заголовки на изображениях */
     .quadrant-title {
         position: absolute;
         bottom: 0;
@@ -162,7 +110,6 @@
         text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
     }
 
-    /* Иконка на изображениях */
     .quadrant-icon {
         position: absolute;
         top: 20px;
@@ -179,29 +126,23 @@
             padding: 40px 20px;
         }
 
+        .slogan {
+            margin-bottom: 50px;
+        }
+
+        .slogan-text {
+            font-size: 2.2rem;
+            gap: 40px;
+        }
+
         .quadrant-grid {
-            grid-template-columns: repeat(2, 1fr); /* На больших экранах 2 колонки */
+            grid-template-columns: repeat(2, 1fr);
             max-width: 1200px;
             gap: 30px;
         }
 
-        .main-header {
-            padding: 60px 40px;
-            margin-bottom: 60px;
-            max-width: 1200px;
-        }
-
-        .main-title {
-            font-size: 3.5rem;
-        }
-
-        .main-subtitle {
-            font-size: 2rem;
-            gap: 60px;
-        }
-
         .quadrant {
-            aspect-ratio: 16 / 9; /* Горизонтальный прямоугольник на больших экранах */
+            aspect-ratio: 16 / 9;
         }
 
         .quadrant-title {
@@ -219,13 +160,13 @@
             padding: 30px 20px;
         }
 
-        .main-title {
-            font-size: 2.8rem;
+        .slogan {
+            margin-bottom: 40px;
         }
 
-        .main-subtitle {
-            font-size: 1.6rem;
-            gap: 30px;
+        .slogan-text {
+            font-size: 1.8rem;
+            gap: 25px;
         }
 
         .quadrant-grid {
@@ -245,40 +186,27 @@
             padding: 15px;
         }
 
-        .main-header {
-            padding: 30px 15px;
+        .slogan {
             margin-bottom: 30px;
         }
 
-        .main-title {
-            font-size: 2.2rem;
-            margin-bottom: 15px;
-        }
-
-        .main-subtitle {
-            font-size: 1.2rem;
-            flex-direction: column;
+        .slogan-text {
+            font-size: 1.4rem;
+            flex-direction: row;
             gap: 15px;
-        }
-
-        .subtitle-item {
-            padding: 8px 15px;
-        }
-
-        .subtitle-item:not(:last-child)::after {
-            content: '';
-            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .quadrant-grid {
-            grid-template-columns: 1fr; /* Одна колонка на мобильных */
+            grid-template-columns: 1fr;
             gap: 20px;
             max-width: 500px;
             margin: 0 auto;
         }
 
         .quadrant {
-            aspect-ratio: 4 / 3; /* Более широкий прямоугольник на мобильных */
+            aspect-ratio: 4 / 3;
         }
 
         .quadrant-title {
@@ -295,12 +223,13 @@
 
     /* Для очень маленьких экранов */
     @media (max-width: 480px) {
-        .main-title {
-            font-size: 1.8rem;
+        .slogan {
+            margin-bottom: 25px;
         }
 
-        .main-subtitle {
-            font-size: 1rem;
+        .slogan-text {
+            font-size: 1.2rem;
+            gap: 10px;
         }
 
         .quadrant {
@@ -314,13 +243,12 @@
 </style>
 
 <div class="page-container">
-    <!-- Заголовок с лозунгом -->
-    <div class="main-header">
-<!--        <h1 class="main-title">Ломбард Народный</h1>-->
-        <div class="main-subtitle">
-            <span class="subtitle-item">Быстро</span>
-            <span class="subtitle-item">Честно</span>
-            <span class="subtitle-item">Выгодно</span>
+    <!-- Простая надпись с лозунгом -->
+    <div class="slogan">
+        <div class="slogan-text">
+            <span>Быстро</span>
+            <span>Честно</span>
+            <span>Выгодно</span>
         </div>
     </div>
 
