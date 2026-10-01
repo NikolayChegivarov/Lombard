@@ -6,88 +6,182 @@
     <title>{% block title %}Ломбард Народный{% endblock %}</title>
     {% load static %}
     <style>
-        /* ============= ШАПКА САЙТА ============= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== ШАПКА ===== */
         .header {
-            background: none; /* УБИРАЕМ градиентный фон */
-            border-bottom: none; /* УБИРАЕМ золотую линию под шапкой */
-            width: 100%; /* Шапка занимает всю ширину экрана */
-            padding: 15px 0; /* Вертикальные отступы внутри шапки */
-            display: flex; /* Используем flexbox для центрирования */
-            justify-content: center; /* Центрируем по горизонтали */
-            align-items: center; /* Центрируем по вертикали */
+            background-color: #ffffff;
+            border-bottom: 1px solid #dee2e6;
+            padding: 0;
         }
 
-        /* ============= КОНТЕЙНЕР ШАПКИ ============= */
-        .header-container {
-            width: 100%; /* Контейнер занимает всю доступную ширину */
-            max-width: 1200px; /* Максимальная ширина контейнера (адаптируется под контент) */
-            margin: 0 auto; /* Автоматические отступы по бокам для центрирования */
-            padding: 0 20px; /* Горизонтальные отступы внутри контейнера (20px слева и справа) */
-            text-align: center; /* Выравнивание содержимого по центру */
+        .header-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            height: 80px;
+            gap: 15px;
         }
 
-        /* ============= СТИЛИ ЛОГОТИПА ============= */
+        .logo-link {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
         .logo {
-            width: 100%; /* Логотип растягивается на всю ширину контейнера */
-            height: auto; /* Высота автоматически рассчитывается для сохранения пропорций */
-            max-height: 220px; /* МАКСИМАЛЬНАЯ высота логотипа (увеличь эту цифру чтобы сделать лого выше) */
-            display: block; /* Логотип отображается как блочный элемент */
-            margin: 0 auto; /* Автоматические отступы для центрирования */
-            border-radius: 15px; /* Добавляем скругление углов */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* ДОБАВЛЯЕМ легкую тень для объема */
+            height: 45px;
+            display: block;
         }
 
-        /* ============= БОЛЬШИЕ ЭКРАНЫ (ПК, НОУТБУКИ) ============= */
-        /* Срабатывает на экранах шириной 1200px и больше */
-        @media (min-width: 1200px) {
-            .logo {
-                max-height: 350px; /* Увеличиваем максимальную высоту логотипа на ПК */
-                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2); /* Усиливаем тень на больших экранах */
+        /* Кнопки меню */
+        .nav-buttons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 24px;
+            height: 96px;             /* чуть крупнее */
+            min-width: 90px;         /* чуть крупнее */
+            background: transparent;
+            color: #000000;
+            border: none;             /* 👈 убрали рамки */
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 700;         /* 👈 жирный шрифт */
+            text-decoration: none;
+            cursor: pointer;
+            transition: none;          /* 👈 убираем любые переходы */
+            white-space: nowrap;
+            letter-spacing: 0.3px;
+        }
+
+        .nav-btn:hover {
+            background: transparent;   /* 👈 никакого фона при наведении */
+            color: #000000;
+        }
+
+        /* Кнопка "Личный кабинет" прижимается к правому краю */
+        .nav-btn-account {
+            margin-left: auto;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ===== ФУТЕР ===== */
+        .footer {
+            background-color: #343a40;
+            color: white;
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            margin-left: 2rem;
+        }
+
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* ===== АДАПТИВНОСТЬ ===== */
+        @media (max-width: 900px) {
+            .header-inner {
+                height: auto;
+                flex-wrap: wrap;
+                padding: 10px 15px;
+                gap: 10px;
+            }
+
+            .nav-buttons {
+                flex-wrap: wrap;
+                width: 100%;
+            }
+
+            .nav-btn {
+                flex: 1;
+                min-width: 90px;
+                padding: 0 12px;
+                font-size: 0.9em;
+                height: 44px;
+            }
+
+            .nav-btn-account {
+                margin-left: 0;
             }
         }
 
-        /* ============= ПЛАНШЕТЫ ============= */
-        /* Срабатывает на экранах от 768px до 1199px */
-        @media (max-width: 1199px) and (min-width: 768px) {
+        @media (max-width: 500px) {
             .logo {
-                max-height: 190px; /* Высота логотипа для планшетов */
-                box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1); /* Легкая тень для планшетов */
+                height: 35px;
             }
-        }
 
-        /* ============= МОБИЛЬНЫЕ ТЕЛЕФОНЫ ============= */
-        /* Срабатывает на экранах до 767px */
-        @media (max-width: 767px) {
-            .logo {
-                max-height: 150px; /* Высота логотипа для мобильных телефонов */
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Минимальная тень для мобильных */
-            }
-            .header {
-                padding: 10px 0; /* Уменьшаем отступы шапки на мобильных */
-            }
-        }
-
-        /* ============= ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ ============= */
-        /* Срабатывает на экранах до 480px (самые маленькие телефоны) */
-        @media (max-width: 480px) {
-            .logo {
-                max-height: 130px; /* Высота логотипа для маленьких телефонов */
-                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1); /* Очень легкая тень */
+            .nav-btn {
+                min-width: 70px;
+                height: 40px;
+                font-size: 0.8em;
+                padding: 0 8px;
             }
         }
     </style>
 </head>
 <body>
-    <!-- ШАПКА -->
     <header class="header">
-        <div class="header-container">
-            <a href="{% url 'index' %}">
+        <div class="header-inner">
+            <!-- Логотип -->
+            <a href="{% url 'index' %}" class="logo-link">
                 <img src="{% static 'logo.jpg' %}" alt="Ломбард Народный" class="logo">
             </a>
+
+            <!-- Кнопки навигации -->
+            <nav class="nav-buttons">
+                <button class="nav-btn" type="button">Меню</button>
+                <button class="nav-btn" type="button">Город</button>
+                <a href="{% url 'branches' %}" class="nav-btn">Филиалы</a>
+                <button class="nav-btn nav-btn-account" type="button">Личный кабинет</button>
+            </nav>
         </div>
     </header>
 
-    <!-- ОСНОВНОЙ КОНТЕНТ -->
     <main class="main-content">
         <div class="container">
             {% block content %}
@@ -95,7 +189,6 @@
         </div>
     </main>
 
-    <!-- ФУТЕР -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -103,7 +196,7 @@
                     <p>&copy; 2024 Ломбард Народный. Все права защищены.</p>
                 </div>
                 <div class="footer-links">
-                    <a href="{% url 'about_us' %}">О нас</a>
+                    <a href="{% url 'contacts' %}">О нас</a>
                     <a href="{% url 'contacts' %}">Контакты</a>
                 </div>
             </div>
