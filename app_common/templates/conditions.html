@@ -1,0 +1,139 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Условия - Ломбард Народный{% endblock %}
+
+{% block content %}
+<style>
+    /* ============= СТИЛИ ДЛЯ КОНТЕНТА УСЛОВИЙ ============= */
+    .conditions-content {
+        background-color: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        margin-top: 30px;
+    }
+
+    .conditions-title {
+        color: #2c3e50;
+        font-size: 32px;
+        margin-bottom: 30px;
+        text-align: center;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 15px;
+    }
+
+    .section {
+        margin-bottom: 35px;
+    }
+
+    .section-title {
+        color: #2c3e50;
+        font-size: 22px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    .section-text {
+        font-size: 16px;
+        line-height: 1.7;
+        margin-bottom: 10px;
+    }
+
+    .highlight {
+        background-color: #fffacd;
+        padding: 15px;
+        border-left: 4px solid #3498db;
+        margin: 20px 0;
+        font-weight: bold;
+    }
+
+    .warning-list {
+        background-color: #fff5f5;
+        padding: 25px;
+        border-radius: 8px;
+        border-left: 4px solid #e74c3c;
+    }
+
+    .warning-title {
+        color: #c0392b;
+        font-size: 20px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
+
+    .warning-item {
+        margin-bottom: 10px;
+        padding-left: 20px;
+        position: relative;
+    }
+
+    .warning-item:before {
+        content: "•";
+        color: #e74c3c;
+        font-size: 20px;
+        position: absolute;
+        left: 0;
+        top: -2px;
+    }
+
+    /* ============= АДАПТИВНОСТЬ ============= */
+    @media (max-width: 767px) {
+        .conditions-content {
+            padding: 20px;
+        }
+        .conditions-title {
+            font-size: 26px;
+        }
+        .section-title {
+            font-size: 19px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .conditions-content {
+            padding: 15px;
+        }
+        .conditions-title {
+            font-size: 22px;
+        }
+    }
+</style>
+
+<div class="conditions-content">
+    <h1 class="conditions-title">Условия сотрудничества</h1>
+
+    <div class="section">
+        <h2 class="section-title">Основные требования</h2>
+        <p class="section-text">Договор займа заключается только при наличии паспорта, возраст заемщика не меньше 18 лет. Договор займа оформляется выдачей ломбардом залогового билета.</p>
+        <p class="section-text">Залогодателем выступает гражданин-заемщик, которому эти вещи принадлежат на праве собственности (п. 3 ст. 2, п. 1 ст. 7 Закона о ломбардах). Таким образом, залог имущества, принадлежащего третьему лицу, здесь недопустим.</p>
+        <p class="section-text">Займ предоставляется в день посещения ломбарда.</p>
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Вид кредита</h2>
+        <p class="section-text">Вид потребительского кредита (займа): заем под залог движимого имущества, предназначенных для личного потребления.</p>
+    </div>
+
+    <div class="highlight">
+        Низкая процентная ставка. Вы участвуете в Программе лояльности для постоянных клиентов (повышенная оценка изделий, льготный процент).
+    </div>
+
+    <div class="section">
+        <h2 class="section-title">Мы не принимаем в залог:</h2>
+        <div class="warning-list">
+            <h3 class="warning-title">Запрещенные к приему предметы:</h3>
+
+            <div class="warning-item">сырье камней и полуфабрикаты, золото, платину, палладий и серебро в самородках, шлихе, пластинах, проволоке, деталях;</div>
+            <div class="warning-item">сусальное золото, полуфабрикаты ювелирного и зубопротезного производства (кроме коронок и дисков);</div>
+            <div class="warning-item">драгоценные металлы в изделиях производственного лабораторного назначения (заклепки, лабораторная посуда и т.д.);</div>
+            <div class="warning-item">драгоценные металлы в виде производственных отходов (опилки, стружки и др.);</div>
+            <div class="warning-item">драгоценные камни (алмазы, рубины, сапфиры, изумруды) и природный жемчуг в необработанном виде;</div>
+            <div class="warning-item">предметы, изъятые из гражданского оборота, или предметы, на продажу которых установлен особый порядок (холодное, огнестрельное оружие и др.);</div>
+            <div class="warning-item">ордена и медали, кроме памятных и юбилейных (именных), содержащие драгоценные металлы;</div>
+            <div class="warning-item">ценности у детей и подростков, не достигших восемнадцатилетнего возраста;</div>
+            <div class="warning-item">ценности у государственных и общественных предприятий, организаций, учреждений и юридических лиц.</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
