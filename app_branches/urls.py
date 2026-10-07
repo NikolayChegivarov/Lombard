@@ -1,8 +1,10 @@
 from django.urls import path
-from .views import branches_view
+
+from app_branches import views
 
 app_name = 'app_branches'
 
 urlpatterns = [
-    path('', branches_view, name='branches'),
+    path('api/set-city/', views.set_city_view, name='set_city'),
+    path('api/branches/', views.branches_api_view, name='branches_api'),
 ]

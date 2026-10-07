@@ -18,6 +18,8 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            color: #000000;
+            background: #ffffff;
         }
 
         /* ===== ШАПКА ===== */
@@ -62,29 +64,99 @@
             align-items: center;
             justify-content: center;
             padding: 0 24px;
-            height: 96px;             /* чуть крупнее */
-            min-width: 90px;         /* чуть крупнее */
+            height: 96px;
+            min-width: 90px;
             background: transparent;
             color: #000000;
-            border: none;             /* 👈 убрали рамки */
+            border: none;
             border-radius: 6px;
             font-size: 1em;
-            font-weight: 700;         /* 👈 жирный шрифт */
+            font-weight: 700;
             text-decoration: none;
             cursor: pointer;
-            transition: none;          /* 👈 убираем любые переходы */
             white-space: nowrap;
             letter-spacing: 0.3px;
+            font-family: inherit;
         }
 
         .nav-btn:hover {
-            background: transparent;   /* 👈 никакого фона при наведении */
             color: #000000;
         }
 
         /* Кнопка "Личный кабинет" прижимается к правому краю */
         .nav-btn-account {
             margin-left: auto;
+        }
+
+        /* ===== ВЫБОР ГОРОДА ===== */
+        .city-selector {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 0 24px;
+            height: 96px;
+            min-width: 90px;
+            color: #000000;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        .city-selector__arrow {
+            font-size: 0.7em;
+            transition: transform 0.2s ease;
+        }
+
+        .city-selector.is-open .city-selector__arrow {
+            transform: rotate(180deg);
+        }
+
+        /* Выпадающий список городов */
+        .city-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 220px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            padding: 6px;
+            z-index: 1000;
+            display: none;
+        }
+
+        .city-selector.is-open .city-dropdown {
+            display: block;
+        }
+
+        .city-dropdown__item {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            text-align: left;
+            font-family: inherit;
+            font-size: 0.95em;
+            color: #000000;
+            cursor: pointer;
+        }
+
+        .city-dropdown__item:hover {
+            background: #f5f5f5;
+        }
+
+        .city-dropdown__item.is-active {
+            font-weight: 700;
+            background: #f0f0f0;
         }
 
         .main-content {
@@ -123,6 +195,102 @@
             text-decoration: underline;
         }
 
+        /* ===== МОДАЛКА ВЫБОРА ГОРОДА ===== */
+        .city-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .city-modal[hidden] {
+            display: none;
+        }
+
+        .city-modal__box {
+            background: #ffffff;
+            border-radius: 12px;
+            max-width: 440px;
+            width: 100%;
+            padding: 32px 28px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .city-modal__title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .city-modal__subtitle {
+            font-size: 0.95em;
+            color: #555555;
+            margin-bottom: 24px;
+        }
+
+        .city-modal__actions {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .city-modal__btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .city-modal__btn--primary {
+            background: #000000;
+            color: #ffffff;
+            border-color: #000000;
+        }
+
+        .city-modal__btn--primary:hover {
+            background: #222222;
+        }
+
+        .city-modal__select-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .city-modal__select {
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #cccccc;
+            font-family: inherit;
+            font-size: 1em;
+            background: #ffffff;
+            color: #000000;
+            cursor: pointer;
+        }
+
+        .city-modal__select:focus {
+            outline: none;
+            border-color: #000000;
+        }
+
+        .city-modal__btn--outline {
+            background: #ffffff;
+            color: #000000;
+            border-color: #000000;
+        }
+
+        .city-modal__btn--outline:hover {
+            background: #f5f5f5;
+        }
+
         /* ===== АДАПТИВНОСТЬ ===== */
         @media (max-width: 900px) {
             .header-inner {
@@ -137,7 +305,8 @@
                 width: 100%;
             }
 
-            .nav-btn {
+            .nav-btn,
+            .city-selector {
                 flex: 1;
                 min-width: 90px;
                 padding: 0 12px;
@@ -148,6 +317,11 @@
             .nav-btn-account {
                 margin-left: 0;
             }
+
+            .city-dropdown {
+                left: 0;
+                transform: none;
+            }
         }
 
         @media (max-width: 500px) {
@@ -155,16 +329,30 @@
                 height: 35px;
             }
 
-            .nav-btn {
+            .nav-btn,
+            .city-selector {
                 min-width: 70px;
                 height: 40px;
                 font-size: 0.8em;
                 padding: 0 8px;
             }
+
+            .city-modal__box {
+                padding: 24px 20px;
+            }
+
+            .city-modal__title {
+                font-size: 1.2em;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- CSRF-токен для AJAX-запросов -->
+    <form style="display:none;">
+        {% csrf_token %}
+    </form>
+
     <header class="header">
         <div class="header-inner">
             <!-- Логотип -->
@@ -175,8 +363,25 @@
             <!-- Кнопки навигации -->
             <nav class="nav-buttons">
                 <button class="nav-btn" type="button">Меню</button>
-                <button class="nav-btn" type="button">Город</button>
-                <a href="{% url 'app_branches:branches' %}" class="nav-btn">Филиалы</a>
+
+                <!-- Выбор города -->
+                <div class="city-selector" id="citySelector" role="button" tabindex="0" aria-haspopup="true">
+                    <span class="city-selector__name" id="citySelectorName">{{ selected_city|default:"Выбрать город" }}</span>
+                    <span class="city-selector__arrow">▼</span>
+
+                    <div class="city-dropdown" id="cityDropdown" role="menu">
+                        {% for city in all_cities %}
+                            <button type="button"
+                                    class="city-dropdown__item {% if city == selected_city %}is-active{% endif %}"
+                                    data-city="{{ city }}"
+                                    role="menuitem">
+                                {{ city }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <a href="/#branches" class="nav-btn">Филиалы</a>
                 <button class="nav-btn nav-btn-account" type="button">Личный кабинет</button>
             </nav>
         </div>
@@ -196,11 +401,162 @@
                     <p>&copy; 2024 Ломбард Народный. Все права защищены.</p>
                 </div>
                 <div class="footer-links">
-                    <a href="{% url 'contacts' %}">О нас</a>
-                    <a href="{% url 'contacts' %}">Контакты</a>
+                    <a href="/#branches">Филиалы</a>
                 </div>
             </div>
         </div>
     </footer>
+
+    <!-- ===== МОДАЛКА ВЫБОРА ГОРОДА ===== -->
+    {% if need_city_confirm %}
+    <div class="city-modal" id="cityModal">
+        <div class="city-modal__box">
+            <h2 class="city-modal__title">Ваш город — {{ selected_city }}?</h2>
+            <p class="city-modal__subtitle">Мы покажем филиалы и услуги, доступные в вашем городе</p>
+
+            <div class="city-modal__actions">
+                <button type="button"
+                        class="city-modal__btn city-modal__btn--primary"
+                        data-city="{{ selected_city }}"
+                        id="cityModalConfirm">
+                    Да, верно
+                </button>
+
+                <div class="city-modal__select-row">
+                    <select class="city-modal__select" id="cityModalSelect">
+                        {% for city in all_cities %}
+                            <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>
+                                {{ city }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="button"
+                            class="city-modal__btn city-modal__btn--outline"
+                            id="cityModalChoose">
+                        Выбрать
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ================= CSRF =================
+        function getCsrfToken() {
+            const input = document.querySelector('[name=csrfmiddlewaretoken]');
+            return input ? input.value : '';
+        }
+
+        // ================= Сохранение города на сервере =================
+        async function saveCity(city) {
+            const body = new URLSearchParams();
+            body.append('city', city);
+
+            const response = await fetch('/api/set-city/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: body.toString(),
+                credentials: 'same-origin',
+            });
+
+            if (!response.ok) {
+                const err = await response.json().catch(() => ({}));
+                throw new Error(err.error || 'Не удалось сохранить город');
+            }
+
+            return response.json();
+        }
+
+        // ================= Dropdown выбора города =================
+        const citySelector = document.getElementById('citySelector');
+        const cityDropdown = document.getElementById('cityDropdown');
+
+        if (citySelector && cityDropdown) {
+            // Открытие/закрытие
+            citySelector.addEventListener('click', function(e) {
+                // Клик по элементу списка — обрабатываем отдельно
+                if (e.target.closest('.city-dropdown__item')) return;
+
+                citySelector.classList.toggle('is-open');
+            });
+
+            // Закрытие по клику вне
+            document.addEventListener('click', function(e) {
+                if (!citySelector.contains(e.target)) {
+                    citySelector.classList.remove('is-open');
+                }
+            });
+
+            // Закрытие по Esc
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    citySelector.classList.remove('is-open');
+                }
+            });
+
+            // Выбор города из списка
+            cityDropdown.addEventListener('click', async function(e) {
+                const item = e.target.closest('.city-dropdown__item');
+                if (!item) return;
+
+                const city = item.dataset.city;
+                if (!city) return;
+
+                try {
+                    await saveCity(city);
+                    // После сохранения — обновляем страницу,
+                    // чтобы филиалы перезагрузились с новым городом
+                    window.location.reload();
+                } catch (err) {
+                    alert(err.message);
+                }
+            });
+        }
+
+        // ================= Модалка подтверждения города =================
+        const cityModal = document.getElementById('cityModal');
+
+        if (cityModal) {
+            const confirmBtn = document.getElementById('cityModalConfirm');
+            const chooseBtn = document.getElementById('cityModalChoose');
+            const select = document.getElementById('cityModalSelect');
+
+            async function saveAndClose(city) {
+                try {
+                    await saveCity(city);
+                    cityModal.hidden = true;
+                    window.location.reload();
+                } catch (err) {
+                    alert(err.message);
+                }
+            }
+
+            // «Да, верно»
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    const city = this.dataset.city;
+                    saveAndClose(city);
+                });
+            }
+
+            // «Выбрать» из списка
+            if (chooseBtn && select) {
+                chooseBtn.addEventListener('click', function() {
+                    const city = select.value;
+                    if (city) {
+                        saveAndClose(city);
+                    }
+                });
+            }
+        }
+    })();
+    </script>
 </body>
 </html>

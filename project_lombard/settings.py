@@ -25,7 +25,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Секретный ключ берётся из переменной окружения.
 # ВАЖНО: никогда не храните ключ в коде и не коммитьте его в репозиторий.
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY', '')
+
+# API-ключ для Яндекс.Карт (JavaScript API и HTTP Геокодер)
+# Получить: https://developer.tech.yandex.ru/services/
+# Пока пусто — карта работает в бесплатном режиме с водяным знаком
+API_KEY_YANDEX_MAP = os.getenv('API_KEY_YANDEX_MAP', '')
 
 # Режим отладки. True — для разработки, False — для продакшена.
 DEBUG = True
@@ -36,6 +41,7 @@ ALLOWED_HOSTS = [
     'localhost',         # Локальный хост
     '127.0.0.1',         # Локальный IPv4
     '[::1]',             # Локальный IPv6
+    'testserver'
 ]
 
 
@@ -93,9 +99,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-
-                # 👇 Раскомментируем на Шаге 3, когда создадим файл
-                # 'app_branches.context_processors.city_context',
+                'app_branches.context_processors.city_context',
             ],
         },
     },

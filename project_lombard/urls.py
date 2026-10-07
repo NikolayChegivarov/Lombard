@@ -6,13 +6,15 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path('branches/', include('app_branches.urls', namespace='app_branches')),
+    # 👇 API-маршруты приложения app_branches
+    path('', include('app_branches.urls', namespace='app_branches')),
 
-    # 👇 Временно можно закомментировать, пока не готовы views
-    # path('prices/', include('app_prices.urls', namespace='app_prices')),
+    # 👇 Временно закомментированы (views ещё не готовы)
+    # path('', include('app_prices.urls', namespace='app_prices')),
     # path('', include('app_common.urls', namespace='app_common')),
     # path('', include('app_accounts.urls', namespace='app_accounts')),
 
+    # 👇 Главная и другие страницы app_core
     path('', include('app_core.urls')),
 ]
 
