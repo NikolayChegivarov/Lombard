@@ -5,12 +5,26 @@ from django.urls import path
 from django.shortcuts import render
 from decimal import Decimal, InvalidOperation
 from django.contrib import messages
-
 from .models import MetalPrice
-from .views.price_calculator import price_calculator
 
 
 # -------------------------- Цены на пробы ----------------------
+def price_admin_calculator(main_proba, decimals=0):
+    """Расчёт цен на пробы золота от базовой цены 585 пробы (для админки)."""
+    proba_375 = round(main_proba * 375 / 585, decimals)
+    proba_500 = round(main_proba * 500 / 585, decimals)
+    proba_585 = main_proba
+    proba_750 = round(main_proba * 750 / 585, decimals)
+    proba_850 = round(main_proba * 850 / 585, decimals)
+
+    return {
+        "proba_375": proba_375,
+        "proba_500": proba_500,
+        "proba_585": proba_585,
+        "proba_750": proba_750,
+        "proba_850": proba_850,
+    }
+
 @admin.register(MetalPrice)
 class MetalPriceAdmin(admin.ModelAdmin):
     """Админка для управления ценами на пробы"""
@@ -112,7 +126,7 @@ class MetalPriceAdmin(admin.ModelAdmin):
                     if gold_585_price <= 0 or silver_925_price <= 0:
                         raise ValueError("Цена должна быть больше 0")
 
-                    calculated_gold = price_calculator(gold_585_price)
+                    calculated_gold = price_admin_calculator(gold_585_price)
 
                     calculated_prices = {}
                     gold_samples = [375, 500, 585, 750, 850]
@@ -158,7 +172,7 @@ class MetalPriceAdmin(admin.ModelAdmin):
                         price_str = request.POST.get(field_name, '').replace(',', '.')
 
                         if not price_str:
-                            calculated_gold = price_calculator(gold_585_price)
+                            calculated_gold = price_admin_calculator(gold_585_price)
                             proba_key = f'proba_{sample}'
                             price = calculated_gold.get(proba_key, Decimal('0'))
                         else:
@@ -199,3 +213,4 @@ class MetalPriceAdmin(admin.ModelAdmin):
             sample=925,
             defaults={'price_per_gram': silver_925_price}
         )
+
