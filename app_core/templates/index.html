@@ -5,9 +5,392 @@
 
 {% block content %}
 
+<!-- ========================================================================== -->
+<!-- СЕКЦИЯ: ФИЛИАЛЫ                                                            -->
+<!-- ========================================================================== -->
+<section id="branches" class="branches-section">
+
+    <!-- Заголовок блока -->
+    <div class="branches-section__header">
+        <h1 class="branches-section__title">Наши филиалы</h1>
+        <p class="branches-section__subtitle" id="branchesSectionSubtitle">
+            Город: {{ selected_city|default:"—" }}
+        </p>
+    </div>
+
+    <!-- Карта + список -->
+    <div class="branches-layout">
+
+        <!-- Карта -->
+        <div class="branches-map" id="branchesMap"></div>
+
+        <!-- Боковая панель -->
+        <aside class="branches-sidebar">
+
+            <!-- Вьюха 1: список филиалов -->
+            <div class="sidebar-view" id="sidebarList">
+                <ul class="branches-list" id="branchesList"></ul>
+            </div>
+
+            <!-- Вьюха 2: детальная информация о филиале -->
+            <div class="sidebar-view" id="sidebarDetail" hidden>
+                <div class="sidebar-detail-header">
+                    <button type="button" class="sidebar-back" id="sidebarBack">
+                        ← Назад
+                    </button>
+                </div>
+                <div class="sidebar-detail-body" id="sidebarDetailBody"></div>
+            </div>
+
+        </aside>
+    </div>
+</section>
+
+<!-- ========================================================================== -->
+<!-- ДАННЫЕ: филиалы текущего города (JSON из Django)                          -->
+<!-- ========================================================================== -->
+{{ branches_json|json_script:"branchesData" }}
+
+<!-- ========================================================================== -->
+<!-- Yandex Maps API                                                            -->
+<!-- ========================================================================== -->
+<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey={{ YANDEX_MAPS_API_KEY }}" type="text/javascript"></script>
+
+<!-- ========================================================================== -->
+<!-- JS: карта + список + детальная панель                                      -->
+<!-- ========================================================================== -->
+<script>
+(function() {
+    'use strict';
+
+    // ==================== ДАННЫЕ ====================
+    const branchesDataEl = document.getElementById('branchesData');
+    const branches = branchesDataEl ? JSON.parse(branchesDataEl.textContent) : [];
+
+    // ==================== DOM ====================
+    const mapEl                    = document.getElementById('branchesMap');
+    const sidebarList              = document.getElementById('sidebarList');
+    const sidebarDetail            = document.getElementById('sidebarDetail');
+    const sidebarDetailBody        = document.getElementById('sidebarDetailBody');
+    const sidebarBack              = document.getElementById('sidebarBack');
+    const branchesListEl           = document.getElementById('branchesList');
+    const branchesSectionSubtitle  = document.getElementById('branchesSectionSubtitle');
+
+    // ==================== СОСТОЯНИЕ ====================
+    let map = null;
+    let clusterer = null;
+    let placemarksByBranchId = {};
+    let activeBranchId = null;
+
+    // ==================== ХЕЛПЕРЫ ====================
+
+    function esc(str) {
+        if (str == null) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    // Склонение слова "филиал"
+    function pluralizeBranches(n) {
+        const mod10 = n % 10;
+        const mod100 = n % 100;
+        if (mod10 === 1 && mod100 !== 11) return 'филиал';
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'филиала';
+        return 'филиалов';
+    }
+
+    // Короткое расписание: "ежедневно 09:00–19:00" / "Пн–Пт 09:00–19:00, Сб 10:00–17:00"
+    function buildShortSchedule(schedule) {
+        if (!schedule || schedule.length === 0) return '';
+
+        const groups = [];
+        for (const item of schedule) {
+            const last = groups[groups.length - 1];
+            if (last && last.time === item.time && last.is_closed === item.is_closed) {
+                last.days.push(item.day);
+            } else {
+                groups.push({
+                    days: [item.day],
+                    time: item.time,
+                    is_closed: item.is_closed,
+                });
+            }
+        }
+
+        function shortDay(dayName) {
+            const m = {
+                'Понедельник': 'Пн',
+                'Вторник': 'Вт',
+                'Среда': 'Ср',
+                'Четверг': 'Чт',
+                'Пятница': 'Пт',
+                'Суббота': 'Сб',
+                'Воскресенье': 'Вс',
+            };
+            return m[dayName] || dayName;
+        }
+
+        function formatGroup(g) {
+            const n = g.days.length;
+            if (g.is_closed) return 'выходной';
+            if (n === 7) return 'ежедневно ' + g.time;
+            if (n === 5 && g.days[0] === 'Понедельник' && g.days[4] === 'Пятница') {
+                return 'Пн–Пт ' + g.time;
+            }
+            if (n === 2 && g.days[0] === 'Суббота' && g.days[1] === 'Воскресенье') {
+                return 'Сб–Вс ' + g.time;
+            }
+            return g.days.map(shortDay).join(', ') + ' ' + g.time;
+        }
+
+        return groups.map(formatGroup).join(', ');
+    }
+
+    // ==================== ЗАГОЛОВОК БЛОКА ====================
+
+    function renderHeader() {
+        if (!branchesSectionSubtitle) return;
+
+        const cityFromData = branches.length > 0
+            ? (branches[0].city || '{{ selected_city }}')
+            : '{{ selected_city }}';
+
+        const n = branches.length;
+        const word = pluralizeBranches(n);
+
+        branchesSectionSubtitle.textContent = `Город: ${cityFromData} · ${n} ${word}`;
+    }
+
+    // ==================== СПИСОК ====================
+
+    function renderList() {
+        branchesListEl.innerHTML = '';
+
+        if (branches.length === 0) {
+            const empty = document.createElement('li');
+            empty.className = 'branch-item';
+            empty.style.textAlign = 'center';
+            empty.style.color = '#888888';
+            empty.style.cursor = 'default';
+            empty.textContent = 'В этом городе филиалов пока нет';
+            branchesListEl.appendChild(empty);
+            return;
+        }
+
+        for (const branch of branches) {
+            const li = document.createElement('li');
+            li.className = 'branch-item';
+            li.dataset.branchId = branch.id;
+
+            const shortSchedule = buildShortSchedule(branch.schedule);
+
+            li.innerHTML = `
+                <div class="branch-item__row">
+                    <div class="branch-item__info">
+                        <div class="branch-item__address">${esc(branch.address)}</div>
+                        <div class="branch-item__schedule">${esc(shortSchedule)}</div>
+                    </div>
+                    <div class="branch-item__arrow">→</div>
+                </div>
+            `;
+
+            li.addEventListener('click', function() {
+                focusBranch(branch.id);
+            });
+
+            branchesListEl.appendChild(li);
+        }
+    }
+
+    // ==================== ДЕТАЛЬНАЯ ПАНЕЛЬ ====================
+
+    function renderDetail(branch) {
+        const shortSchedule = buildShortSchedule(branch.schedule);
+        const statusClass = branch.is_open_now ? 'detail-status--open' : 'detail-status--closed';
+        const statusText = branch.is_open_now ? 'Открыт' : 'Закрыт';
+        const routeUrl = `https://yandex.ru/maps/?rtext=~${branch.latitude},${branch.longitude}&rtt=auto`;
+
+        sidebarDetailBody.innerHTML = `
+            <h3 class="detail-title">${esc(branch.address)}</h3>
+            <div class="detail-city">г. ${esc(branch.city)}</div>
+
+            <div class="detail-schedule">${esc(shortSchedule)}</div>
+
+            <div class="detail-phone">
+                <a href="tel:${esc(branch.phone)}">${esc(branch.formatted_phone || branch.phone)}</a>
+            </div>
+
+            <span class="detail-status ${statusClass}">${esc(statusText)}</span>
+
+            <a href="${routeUrl}" target="_blank" rel="noopener" class="detail-route-btn">
+                Построить маршрут
+            </a>
+        `;
+    }
+
+    // ==================== ПЕРЕКЛЮЧЕНИЕ ВЬЮХ ====================
+
+    function showList() {
+        sidebarDetail.hidden = true;
+        sidebarList.hidden = false;
+
+        document.querySelectorAll('.branch-item.is-active').forEach(el => {
+            el.classList.remove('is-active');
+        });
+
+        if (map && clusterer) {
+            const bounds = clusterer.getBounds();
+            if (bounds) {
+                map.setBounds(bounds, {
+                    checkZoomRange: true,
+                    zoomMargin: 30,
+                });
+            }
+        }
+
+        activeBranchId = null;
+    }
+
+    function showDetail(branch) {
+        sidebarList.hidden = true;
+        sidebarDetail.hidden = false;
+
+        document.querySelectorAll('.branch-item.is-active').forEach(el => {
+            el.classList.remove('is-active');
+        });
+        const activeItem = branchesListEl.querySelector(
+            `.branch-item[data-branch-id="${branch.id}"]`
+        );
+        if (activeItem) {
+            activeItem.classList.add('is-active');
+            activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+
+        renderDetail(branch);
+        activeBranchId = branch.id;
+    }
+
+    // ==================== ФОКУС ====================
+
+    function focusBranch(branchId) {
+        const branch = branches.find(b => b.id === branchId);
+        if (!branch) return;
+
+        showDetail(branch);
+
+        if (map) {
+            map.setCenter([branch.latitude, branch.longitude], 17, { duration: 300 });
+
+            const placemark = placemarksByBranchId[branchId];
+            if (placemark) {
+                placemark.balloon.open();
+            }
+        }
+    }
+
+    // ==================== КАРТА ====================
+
+    function initMap() {
+        if (!mapEl) return;
+
+        if (branches.length === 0) {
+            map = new ymaps.Map(mapEl, {
+                center: [55.751244, 37.618423],
+                zoom: 4,
+                controls: ['zoomControl', 'fullscreenControl'],
+            });
+            return;
+        }
+
+        const first = branches[0];
+
+        map = new ymaps.Map(mapEl, {
+            center: [first.latitude, first.longitude],
+            zoom: 12,
+            controls: ['zoomControl', 'fullscreenControl'],
+        });
+
+        clusterer = new ymaps.Clusterer({
+            preset: 'islands#invertedBlackClusterIcons',
+            groupByCoordinates: false,
+            clusterDisableClickZoom: true,
+            clusterHideIconOnBalloonOpen: false,
+            geoObjectHideIconOnBalloonOpen: false,
+        });
+
+        for (const branch of branches) {
+            const placemark = new ymaps.Placemark(
+                [branch.latitude, branch.longitude],
+                {
+                    hintContent: esc(branch.address),
+                    balloonContent: `
+                        <div style="font-family: Arial, sans-serif; font-size: 13px;">
+                            <strong>${esc(branch.address)}</strong><br>
+                            ${esc(buildShortSchedule(branch.schedule))}<br>
+                            ${esc(branch.formatted_phone || branch.phone)}
+                        </div>
+                    `,
+                },
+                { preset: 'islands#blackIcon' }
+            );
+
+            placemark.events.add('click', function() {
+                focusBranch(branch.id);
+            });
+
+            placemarksByBranchId[branch.id] = placemark;
+            clusterer.add(placemark);
+        }
+
+        map.geoObjects.add(clusterer);
+
+        const bounds = clusterer.getBounds();
+        if (bounds) {
+            map.setBounds(bounds, {
+                checkZoomRange: true,
+                zoomMargin: 30,
+            });
+        }
+
+        map.events.add('click', function() {
+            if (activeBranchId !== null) {
+                showList();
+            }
+        });
+    }
+
+    // ==================== СТАРТ ====================
+
+    function start() {
+        renderHeader();
+        renderList();
+        initMap();
+    }
+
+    if (window.ymaps && ymaps.ready) {
+        ymaps.ready(start);
+    } else {
+        renderHeader();
+        renderList();
+    }
+
+    if (sidebarBack) {
+        sidebarBack.addEventListener('click', showList);
+    }
+
+})();
+</script>
+
+<!-- ========================================================================== -->
+<!-- СТИЛИ                                                                      -->
+<!-- ========================================================================== -->
 <style>
     /* ==========================================================================
-       СЕКЦИЯ ФИЛИАЛОВ (карта + список)
+       СЕКЦИЯ ФИЛИАЛОВ
        ========================================================================== */
 
     .branches-section {
@@ -16,11 +399,36 @@
         margin: 0 auto 40px;
     }
 
+    /* ===== Заголовок блока ===== */
+    .branches-section__header {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .branches-section__title {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #000000;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .branches-section__subtitle {
+        font-size: 1em;
+        color: #666666;
+        margin: 0;
+    }
+
+    /* ===== Сетка: карта + список ===== */
     .branches-layout {
         display: grid;
         grid-template-columns: 1fr 420px;
         gap: 20px;
-        height: 520px;             /* компактная высота */
+        height: 520px;
         align-items: stretch;
     }
 
@@ -45,36 +453,15 @@
         overflow: hidden;
     }
 
-    /* Общие стили для вьюх внутри панели */
     .sidebar-view {
         display: flex;
         flex-direction: column;
         height: 100%;
-        min-height: 0;             /* чтобы работал внутренний скролл */
+        min-height: 0;
     }
 
     .sidebar-view[hidden] {
         display: none;
-    }
-
-    /* ===== Заголовок списка ===== */
-    .sidebar-header {
-        padding: 20px 24px 12px;
-        border-bottom: 1px solid #f0f0f0;
-        flex-shrink: 0;
-    }
-
-    .sidebar-title {
-        font-size: 1.3em;
-        font-weight: 700;
-        color: #000000;
-        margin: 0;
-    }
-
-    .sidebar-subtitle {
-        font-size: 0.9em;
-        color: #666666;
-        margin-top: 4px;
     }
 
     /* ===== Список филиалов (со скроллом) ===== */
@@ -82,12 +469,11 @@
         list-style: none;
         padding: 0;
         margin: 0;
-        overflow-y: auto;          /* ← скроллбар */
+        overflow-y: auto;
         flex: 1;
         min-height: 0;
     }
 
-    /* Стили скроллбара (для WebKit) */
     .branches-list::-webkit-scrollbar {
         width: 6px;
     }
@@ -112,6 +498,10 @@
         border-bottom: 1px solid #f5f5f5;
         cursor: pointer;
         transition: background 0.15s ease;
+    }
+
+    .branch-item:last-child {
+        border-bottom: none;
     }
 
     .branch-item:hover {
@@ -272,6 +662,10 @@
 
     /* ===== Адаптивность ===== */
     @media (max-width: 900px) {
+        .branches-section__title {
+            font-size: 1.5em;
+        }
+
         .branches-layout {
             grid-template-columns: 1fr;
             grid-template-rows: 300px 1fr;
@@ -288,6 +682,10 @@
     }
 
     @media (max-width: 500px) {
+        .branches-section__title {
+            font-size: 1.3em;
+        }
+
         .branches-layout {
             grid-template-rows: 250px 1fr;
         }
@@ -304,413 +702,11 @@
             padding: 14px 18px;
         }
 
-        .sidebar-header,
         .sidebar-detail-body {
             padding-left: 18px;
             padding-right: 18px;
         }
     }
 </style>
-
-<!-- ========================================================================== -->
-<!-- СЕКЦИЯ: ФИЛИАЛЫ                                                            -->
-<!-- ========================================================================== -->
-<section id="branches" class="branches-section">
-    <div class="branches-layout">
-
-        <!-- Карта -->
-        <div class="branches-map" id="branchesMap"></div>
-
-        <!-- Боковая панель -->
-        <aside class="branches-sidebar">
-
-            <!-- Вьюха 1: список филиалов -->
-            <div class="sidebar-view" id="sidebarList">
-                <div class="sidebar-header">
-                    <h2 class="sidebar-title" id="sidebarCityTitle">{{ selected_city }}</h2>
-                    <div class="sidebar-subtitle" id="sidebarCount"></div>
-                </div>
-                <ul class="branches-list" id="branchesList"></ul>
-            </div>
-
-            <!-- Вьюха 2: детальная информация о филиале -->
-            <div class="sidebar-view" id="sidebarDetail" hidden>
-                <div class="sidebar-detail-header">
-                    <button type="button" class="sidebar-back" id="sidebarBack">
-                        ← Назад
-                    </button>
-                </div>
-                <div class="sidebar-detail-body" id="sidebarDetailBody"></div>
-            </div>
-
-        </aside>
-    </div>
-</section>
-
-<!-- ========================================================================== -->
-<!-- ДАННЫЕ: филиалы текущего города (JSON из Django)                          -->
-<!-- ========================================================================== -->
-{{ branches_json|json_script:"branchesData" }}
-
-<!-- ========================================================================== -->
-<!-- Yandex Maps API                                                            -->
-<!-- ========================================================================== -->
-<script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey={{ API_KEY_YANDEX_MAP }}" type="text/javascript"></script>
-
-<!-- ========================================================================== -->
-<!-- JS: карта + список + детальная панель                                      -->
-<!-- ========================================================================== -->
-<script>
-(function() {
-    'use strict';
-
-    // ==================== ДАННЫЕ ====================
-    const branchesDataEl = document.getElementById('branchesData');
-    const branches = branchesDataEl ? JSON.parse(branchesDataEl.textContent) : [];
-
-    // ==================== DOM ====================
-    const mapEl             = document.getElementById('branchesMap');
-    const sidebarList       = document.getElementById('sidebarList');
-    const sidebarDetail     = document.getElementById('sidebarDetail');
-    const sidebarDetailBody = document.getElementById('sidebarDetailBody');
-    const sidebarBack       = document.getElementById('sidebarBack');
-    const branchesListEl    = document.getElementById('branchesList');
-    const sidebarCityTitle  = document.getElementById('sidebarCityTitle');
-    const sidebarCount      = document.getElementById('sidebarCount');
-
-    // ==================== СОСТОЯНИЕ ====================
-    let map = null;
-    let clusterer = null;
-    let placemarksByBranchId = {};   // {branchId: placemark}
-    let activeBranchId = null;
-
-    // ==================== ХЕЛПЕРЫ ====================
-
-    // Экранирование HTML (чтобы случайно не вставить теги из данных)
-    function esc(str) {
-        if (str == null) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
-    }
-
-    // Формируем короткое расписание "ежедневно 09:00–19:00" или "Пн–Пт 09:00–19:00, Сб 10:00–17:00"
-    function buildShortSchedule(schedule) {
-        if (!schedule || schedule.length === 0) return '';
-
-        // Группируем одинаковые дни
-        const groups = [];
-        for (const item of schedule) {
-            const last = groups[groups.length - 1];
-            if (last && last.time === item.time && last.is_closed === item.is_closed) {
-                last.days.push(item.day);
-            } else {
-                groups.push({
-                    days: [item.day],
-                    time: item.time,
-                    is_closed: item.is_closed,
-                });
-            }
-        }
-
-        // Преобразуем в короткие метки
-        function shortDay(dayName) {
-            const map = {
-                'Понедельник': 'Пн',
-                'Вторник': 'Вт',
-                'Среда': 'Ср',
-                'Четверг': 'Чт',
-                'Пятница': 'Пт',
-                'Суббота': 'Сб',
-                'Воскресенье': 'Вс',
-            };
-            return map[dayName] || dayName;
-        }
-
-        function formatGroup(g) {
-            const daysCount = g.days.length;
-            if (g.is_closed) {
-                return 'выходной';
-            }
-            // Все 7 дней
-            if (daysCount === 7) {
-                return 'ежедневно ' + g.time;
-            }
-            // Пн–Пт (5 дней)
-            if (daysCount === 5 && g.days[0] === 'Понедельник' && g.days[4] === 'Пятница') {
-                return 'Пн–Пт ' + g.time;
-            }
-            // Сб–Вс (2 дня)
-            if (daysCount === 2 && g.days[0] === 'Суббота' && g.days[1] === 'Воскресенье') {
-                return 'Сб–Вс ' + g.time;
-            }
-            // Иначе — перечисляем через запятую
-            return g.days.map(shortDay).join(', ') + ' ' + g.time;
-        }
-
-        return groups.map(formatGroup).join(', ');
-    }
-
-    // ==================== СПИСОК ФИЛИАЛОВ ====================
-
-    function renderList() {
-        // Заголовок
-        if (sidebarCityTitle) {
-            sidebarCityTitle.textContent = branches.length > 0
-                ? (branches[0].city || '')
-                : '{{ selected_city }}';
-        }
-
-        // Счётчик
-        if (sidebarCount) {
-            const n = branches.length;
-            const word = n % 10 === 1 && n % 100 !== 11 ? 'филиал'
-                       : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'филиала'
-                       : 'филиалов');
-            sidebarCount.textContent = n + ' ' + word;
-        }
-
-        // Список
-        branchesListEl.innerHTML = '';
-
-        if (branches.length === 0) {
-            const empty = document.createElement('li');
-            empty.className = 'branch-item';
-            empty.style.textAlign = 'center';
-            empty.style.color = '#888888';
-            empty.style.cursor = 'default';
-            empty.textContent = 'В этом городе филиалов пока нет';
-            branchesListEl.appendChild(empty);
-            return;
-        }
-
-        for (const branch of branches) {
-            const li = document.createElement('li');
-            li.className = 'branch-item';
-            li.dataset.branchId = branch.id;
-
-            const shortSchedule = buildShortSchedule(branch.schedule);
-
-            li.innerHTML = `
-                <div class="branch-item__row">
-                    <div class="branch-item__info">
-                        <div class="branch-item__address">${esc(branch.address)}</div>
-                        <div class="branch-item__schedule">${esc(shortSchedule)}</div>
-                    </div>
-                    <div class="branch-item__arrow">→</div>
-                </div>
-            `;
-
-            li.addEventListener('click', function() {
-                focusBranch(branch.id);
-            });
-
-            branchesListEl.appendChild(li);
-        }
-    }
-
-    // ==================== ДЕТАЛЬНАЯ ПАНЕЛЬ ====================
-
-    function renderDetail(branch) {
-        const shortSchedule = buildShortSchedule(branch.schedule);
-
-        const statusClass = branch.is_open_now
-            ? 'detail-status--open'
-            : 'detail-status--closed';
-        const statusText = branch.is_open_now ? 'Открыт' : 'Закрыт';
-
-        // Ссылка для маршрута (Яндекс.Карты)
-        // rtext=~lat,lon — маршрут "от текущего местоположения до точки"
-        const routeUrl = `https://yandex.ru/maps/?rtext=~${branch.latitude},${branch.longitude}&rtt=auto`;
-
-        sidebarDetailBody.innerHTML = `
-            <h3 class="detail-title">${esc(branch.address)}</h3>
-            <div class="detail-city">г. ${esc(branch.city)}</div>
-
-            <div class="detail-schedule">${esc(shortSchedule)}</div>
-
-            <div class="detail-phone">
-                <a href="tel:${esc(branch.phone)}">${esc(branch.formatted_phone || branch.phone)}</a>
-            </div>
-
-            <span class="detail-status ${statusClass}">${esc(statusText)}</span>
-
-            <a href="${routeUrl}" target="_blank" rel="noopener" class="detail-route-btn">
-                Построить маршрут
-            </a>
-        `;
-    }
-
-    // ==================== ПЕРЕКЛЮЧЕНИЕ ВЬЮХ ====================
-
-    function showList() {
-        sidebarDetail.hidden = true;
-        sidebarList.hidden = false;
-
-        // Снимаем подсветку в списке
-        document.querySelectorAll('.branch-item.is-active').forEach(el => {
-            el.classList.remove('is-active');
-        });
-
-        // Возвращаем карту к общему виду (все точки)
-        if (map && clusterer) {
-            const bounds = clusterer.getBounds();
-            if (bounds) {
-                map.setBounds(bounds, {
-                    checkZoomRange: true,
-                    zoomMargin: 30,
-                });
-            }
-        }
-
-        activeBranchId = null;
-    }
-
-    function showDetail(branch) {
-        sidebarList.hidden = true;
-        sidebarDetail.hidden = false;
-
-        // Подсветка в списке (если потом вернёмся)
-        document.querySelectorAll('.branch-item.is-active').forEach(el => {
-            el.classList.remove('is-active');
-        });
-        const activeItem = branchesListEl.querySelector(
-            `.branch-item[data-branch-id="${branch.id}"]`
-        );
-        if (activeItem) {
-            activeItem.classList.add('is-active');
-            activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-        }
-
-        renderDetail(branch);
-        activeBranchId = branch.id;
-    }
-
-    // ==================== ФОКУС НА ФИЛИАЛЕ ====================
-
-    function focusBranch(branchId) {
-        const branch = branches.find(b => b.id === branchId);
-        if (!branch) return;
-
-        showDetail(branch);
-
-        // Центрируем карту и приближаем
-        if (map) {
-            const coords = [branch.latitude, branch.longitude];
-            map.setCenter(coords, 17, { duration: 300 });
-
-            // Открываем балун у метки
-            const placemark = placemarksByBranchId[branchId];
-            if (placemark) {
-                placemark.balloon.open();
-            }
-        }
-    }
-
-    // ==================== ИНИЦИАЛИЗАЦИЯ КАРТЫ ====================
-
-    function initMap() {
-        if (!mapEl || branches.length === 0) {
-            // Нет филиалов — показываем карту с центром на России
-            if (mapEl) {
-                map = new ymaps.Map(mapEl, {
-                    center: [55.751244, 37.618423],  // Москва
-                    zoom: 4,
-                    controls: ['zoomControl', 'fullscreenControl'],
-                });
-            }
-            return;
-        }
-
-        // Центр — первый филиал
-        const first = branches[0];
-
-        map = new ymaps.Map(mapEl, {
-            center: [first.latitude, first.longitude],
-            zoom: 12,
-            controls: ['zoomControl', 'fullscreenControl'],
-        });
-
-        // Кластеризатор (собирает близкие метки в один кружок)
-        clusterer = new ymaps.Clusterer({
-            preset: 'islands#invertedBlackClusterIcons',
-            groupByCoordinates: false,
-            clusterDisableClickZoom: true,
-            clusterHideIconOnBalloonOpen: false,
-            geoObjectHideIconOnBalloonOpen: false,
-        });
-
-        // Добавляем метки
-        for (const branch of branches) {
-            const placemark = new ymaps.Placemark(
-                [branch.latitude, branch.longitude],
-                {
-                    hintContent: esc(branch.address),
-                    balloonContent: `
-                        <div style="font-family: Arial, sans-serif; font-size: 13px;">
-                            <strong>${esc(branch.address)}</strong><br>
-                            ${esc(buildShortSchedule(branch.schedule))}<br>
-                            ${esc(branch.formatted_phone || branch.phone)}
-                        </div>
-                    `,
-                },
-                {
-                    preset: 'islands#blackIcon',
-                }
-            );
-
-            // Клик по метке → фокус на филиале
-            placemark.events.add('click', function() {
-                focusBranch(branch.id);
-            });
-
-            placemarksByBranchId[branch.id] = placemark;
-            clusterer.add(placemark);
-        }
-
-        map.geoObjects.add(clusterer);
-
-        // Подгоняем границы, чтобы все метки были видны
-        const bounds = clusterer.getBounds();
-        if (bounds) {
-            map.setBounds(bounds, {
-                checkZoomRange: true,
-                zoomMargin: 30,
-            });
-        }
-
-        // Клик по пустому месту карты → возврат к списку
-        map.events.add('click', function() {
-            if (activeBranchId !== null) {
-                showList();
-            }
-        });
-    }
-
-    // ==================== СТАРТ ====================
-
-    function start() {
-        renderList();
-        initMap();
-    }
-
-    // Ждём загрузки Yandex Maps API
-    if (window.ymaps && ymaps.ready) {
-        ymaps.ready(start);
-    } else {
-        // API не загрузился — просто показываем список
-        renderList();
-    }
-
-    // Кнопка "Назад"
-    if (sidebarBack) {
-        sidebarBack.addEventListener('click', showList);
-    }
-
-})();
-</script>
 
 {% endblock %}
