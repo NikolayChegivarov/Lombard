@@ -5,100 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Ломбард Народный{% endblock %}</title>
     {% load static %}
-</head>
-<body>
-    <!-- CSRF-токен для AJAX-запросов -->
-    <form style="display:none;">
-        {% csrf_token %}
-    </form>
-
-    <header class="header">
-        <div class="header-inner">
-            <!-- Логотип -->
-            <a href="{% url 'index' %}" class="logo-link">
-                <img src="{% static 'Prozr.png' %}" alt="Ломбард Народный" class="logo">
-            </a>
-
-            <!-- Кнопки навигации -->
-            <nav class="nav-buttons">
-                <button class="nav-btn" type="button">Меню</button>
-
-                <!-- Выбор города -->
-                <div class="city-selector" id="citySelector" role="button" tabindex="0" aria-haspopup="true">
-                    <span class="city-selector__name" id="citySelectorName">{{ selected_city|default:"Выбрать город" }}</span>
-                    <span class="city-selector__arrow">▼</span>
-
-                    <div class="city-dropdown" id="cityDropdown" role="menu">
-                        {% for city in all_cities %}
-                            <button type="button"
-                                    class="city-dropdown__item {% if city == selected_city %}is-active{% endif %}"
-                                    data-city="{{ city }}"
-                                    role="menuitem">
-                                {{ city }}
-                            </button>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <a href="/#branches" class="nav-btn">Филиалы</a>
-                <button class="nav-btn nav-btn-account" type="button">Личный кабинет</button>
-            </nav>
-        </div>
-    </header>
-
-    <main class="main-content">
-        <div class="container">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </main>
-
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-info">
-                    <p>&copy; 2024 Ломбард Народный. Все права защищены.</p>
-                </div>
-                <div class="footer-links">
-                    <a href="/#branches">Филиалы</a>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <!-- ===== МОДАЛКА ВЫБОРА ГОРОДА ===== -->
-    {% if need_city_confirm %}
-    <div class="city-modal" id="cityModal">
-        <div class="city-modal__box">
-            <h2 class="city-modal__title">Ваш город — {{ selected_city }}?</h2>
-            <p class="city-modal__subtitle">Мы покажем филиалы и услуги, доступные в вашем городе</p>
-
-            <div class="city-modal__actions">
-                <button type="button"
-                        class="city-modal__btn city-modal__btn--primary"
-                        data-city="{{ selected_city }}"
-                        id="cityModalConfirm">
-                    Да, верно
-                </button>
-
-                <div class="city-modal__select-row">
-                    <select class="city-modal__select" id="cityModalSelect">
-                        {% for city in all_cities %}
-                            <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>
-                                {{ city }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                    <button type="button"
-                            class="city-modal__btn city-modal__btn--outline"
-                            id="cityModalChoose">
-                        Выбрать
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 
     <style>
         html {
@@ -149,6 +55,8 @@
 
         .logo {
             height: 45px;
+            width: auto;
+            max-width: 100%;
             display: block;
         }
 
@@ -428,6 +336,7 @@
         @media (max-width: 500px) {
             .logo {
                 height: 35px;
+                width: auto;
             }
 
             .nav-btn,
@@ -447,6 +356,102 @@
             }
         }
     </style>
+
+    {% block extrastyle %}{% endblock %}
+</head>
+<body>
+    <!-- CSRF-токен для AJAX-запросов -->
+    <form style="display:none;">
+        {% csrf_token %}
+    </form>
+
+    <header class="header">
+        <div class="header-inner">
+            <!-- Логотип -->
+            <a href="{% url 'index' %}" class="logo-link">
+                <img src="{% static 'Prozr.png' %}" alt="Ломбард Народный" class="logo" width="141" height="45">
+            </a>
+
+            <!-- Кнопки навигации -->
+            <nav class="nav-buttons">
+                <button class="nav-btn" type="button">Меню</button>
+
+                <!-- Выбор города -->
+                <div class="city-selector" id="citySelector" role="button" tabindex="0" aria-haspopup="true">
+                    <span class="city-selector__name" id="citySelectorName">{{ selected_city|default:"Выбрать город" }}</span>
+                    <span class="city-selector__arrow">▼</span>
+
+                    <div class="city-dropdown" id="cityDropdown" role="menu">
+                        {% for city in all_cities %}
+                            <button type="button"
+                                    class="city-dropdown__item {% if city == selected_city %}is-active{% endif %}"
+                                    data-city="{{ city }}"
+                                    role="menuitem">
+                                {{ city }}
+                            </button>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <a href="/#branches" class="nav-btn">Филиалы</a>
+                <button class="nav-btn nav-btn-account" type="button">Личный кабинет</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <p>&copy; 2024 Ломбард Народный. Все права защищены.</p>
+                </div>
+                <div class="footer-links">
+                    <a href="/#branches">Филиалы</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== МОДАЛКА ВЫБОРА ГОРОДА ===== -->
+    {% if need_city_confirm %}
+    <div class="city-modal" id="cityModal">
+        <div class="city-modal__box">
+            <h2 class="city-modal__title">Ваш город — {{ selected_city }}?</h2>
+            <p class="city-modal__subtitle">Мы покажем филиалы и услуги, доступные в вашем городе</p>
+
+            <div class="city-modal__actions">
+                <button type="button"
+                        class="city-modal__btn city-modal__btn--primary"
+                        data-city="{{ selected_city }}"
+                        id="cityModalConfirm">
+                    Да, верно
+                </button>
+
+                <div class="city-modal__select-row">
+                    <select class="city-modal__select" id="cityModalSelect">
+                        {% for city in all_cities %}
+                            <option value="{{ city }}" {% if city == selected_city %}selected{% endif %}>
+                                {{ city }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <button type="button"
+                            class="city-modal__btn city-modal__btn--outline"
+                            id="cityModalChoose">
+                        Выбрать
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <script>
     (function() {

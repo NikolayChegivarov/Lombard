@@ -3,6 +3,583 @@
 
 {% block title %}Главная - Ломбард Народный{% endblock %}
 
+{% block extrastyle %}
+<style>
+    /* ==========================================================================
+       СЕКЦИЯ КАЛЬКУЛЯТОРА ЦЕН
+       ========================================================================== */
+
+    .metal-calc-section {
+        width: 100%;
+        margin: 0 auto 60px;
+    }
+
+    .metal-calc__header {
+        margin-bottom: 20px;
+    }
+
+    .metal-calc__title {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #000;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    .metal-calc__layout {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 20px;
+        align-items: stretch;
+    }
+
+    /* ===== Левая карточка ===== */
+    .metal-calc__panel {
+        background: #f7f7f7;
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    /* Табы */
+    .metal-calc__tabs {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        background: #ececec;
+        border-radius: 999px;
+        padding: 4px;
+    }
+
+    .metal-calc__tab {
+        border: none;
+        background: transparent;
+        padding: 12px 16px;
+        border-radius: 999px;
+        font-family: inherit;
+        font-size: 1em;
+        font-weight: 600;
+        color: #000;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .metal-calc__tab.is-active {
+        background: #000;
+        color: #fff;
+    }
+
+    /* Блок внутри карточки */
+    .metal-calc__block {
+        background: #efefef;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    .metal-calc__block-title {
+        font-size: 1.05em;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 12px;
+    }
+
+    /* Пробы */
+    .metal-calc__samples {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .metal-calc__sample {
+        border: none;
+        background: #fff;
+        border-radius: 999px;
+        padding: 10px 18px;
+        font-family: inherit;
+        font-size: 0.95em;
+        font-weight: 600;
+        color: #000;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .metal-calc__sample:hover {
+        background: #f0f0f0;
+    }
+
+    .metal-calc__sample.is-active {
+        background: #000;
+        color: #fff;
+    }
+
+    /* Вес */
+    .metal-calc__weight-field {
+        position: relative;
+        background: #fff;
+        border-radius: 10px;
+        padding: 10px 14px 10px;
+        margin-bottom: 12px;
+    }
+
+    .metal-calc__weight-label {
+        display: block;
+        font-size: 0.85em;
+        color: #888;
+        margin-bottom: 2px;
+    }
+
+    .metal-calc__weight-input {
+        width: 100%;
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: inherit;
+        font-size: 1.15em;
+        font-weight: 600;
+        color: #000;
+        padding: 0;
+        padding-right: 28px; /* место под крестик */
+        -moz-appearance: textfield;
+    }
+
+    .metal-calc__weight-input::-webkit-outer-spin-button,
+    .metal-calc__weight-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .metal-calc__weight-clear {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: #999;
+        font-size: 1.3em;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px 8px;
+    }
+
+    .metal-calc__weight-clear:hover {
+        color: #000;
+    }
+
+    /* Быстрые веса */
+    .metal-calc__quick-weights {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .metal-calc__qw {
+        border: none;
+        background: #e4e4e4;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-family: inherit;
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #000;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .metal-calc__qw:hover {
+        background: #d8d8d8;
+    }
+
+    /* ===== Правая карточка: результат ===== */
+    .metal-calc__result {
+        background: #f7f7f7;
+        border-radius: 16px;
+        padding: 32px 24px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 8px;
+    }
+
+    .metal-calc__sum {
+        font-size: 3.4em;
+        font-weight: 700;
+        color: #000;
+        line-height: 1.1;
+    }
+
+    .metal-calc__sum-label {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 8px;
+    }
+
+    .metal-calc__disclaimer {
+        font-size: 0.85em;
+        color: #888;
+        line-height: 1.4;
+        margin-top: 16px;
+    }
+
+    /* ==========================================================================
+       СЕКЦИЯ ФИЛИАЛОВ
+       ========================================================================== */
+
+    .branches-section {
+        width: 100%;
+        padding: 0;
+        margin: 0 auto 40px;
+    }
+
+    /* ===== Заголовок блока ===== */
+    .branches-section__header {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .branches-section__title {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #000000;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .branches-section__subtitle {
+        font-size: 1em;
+        color: #666666;
+        margin: 0;
+    }
+
+    /* ===== Сетка: карта + список ===== */
+    .branches-layout {
+        display: grid;
+        grid-template-columns: 1fr 420px;
+        gap: 20px;
+        height: 520px;
+        align-items: stretch;
+    }
+
+    /* ===== Карта ===== */
+    .branches-map {
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #e5e5e5;
+        background: #f7f7f7;
+    }
+
+    /* ===== Боковая панель ===== */
+    .branches-sidebar {
+        height: 100%;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .sidebar-view {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+    }
+
+    .sidebar-view[hidden] {
+        display: none;
+    }
+
+    /* ===== Список филиалов (со скроллом) ===== */
+    .branches-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .branches-list::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .branches-list::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .branches-list::-webkit-scrollbar-thumb {
+        background: #d0d0d0;
+        border-radius: 3px;
+    }
+
+    .branches-list::-webkit-scrollbar-thumb:hover {
+        background: #b0b0b0;
+    }
+
+    /* ===== Элемент списка ===== */
+    .branch-item {
+        display: block;
+        padding: 16px 24px;
+        border-bottom: 1px solid #f5f5f5;
+        cursor: pointer;
+        transition: background 0.15s ease;
+    }
+
+    .branch-item:last-child {
+        border-bottom: none;
+    }
+
+    .branch-item:hover {
+        background: #fafafa;
+    }
+
+    .branch-item.is-active {
+        background: #f0f0f0;
+    }
+
+    .branch-item__row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .branch-item__info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .branch-item__address {
+        font-size: 1em;
+        font-weight: 600;
+        color: #000000;
+        margin-bottom: 4px;
+        word-wrap: break-word;
+    }
+
+    .branch-item__schedule {
+        font-size: 0.9em;
+        color: #666666;
+    }
+
+    .branch-item__arrow {
+        font-size: 1.2em;
+        color: #999999;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    /* ===== Детальная панель ===== */
+    .sidebar-detail-header {
+        padding: 12px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        flex-shrink: 0;
+    }
+
+    .sidebar-back {
+        background: transparent;
+        border: none;
+        color: #000000;
+        font-size: 1.1em;
+        cursor: pointer;
+        padding: 6px 4px;
+        font-family: inherit;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sidebar-back:hover {
+        color: #666666;
+    }
+
+    .sidebar-detail-body {
+        padding: 20px 24px 24px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+    }
+
+    .sidebar-detail-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar-detail-body::-webkit-scrollbar-thumb {
+        background: #d0d0d0;
+        border-radius: 3px;
+    }
+
+    .detail-title {
+        font-size: 1.3em;
+        font-weight: 700;
+        color: #000000;
+        margin: 0 0 6px;
+        line-height: 1.3;
+    }
+
+    .detail-city {
+        font-size: 0.95em;
+        color: #666666;
+        margin-bottom: 16px;
+    }
+
+    .detail-schedule {
+        font-size: 0.95em;
+        color: #333333;
+        margin-bottom: 14px;
+    }
+
+    .detail-phone {
+        font-size: 1em;
+        color: #000000;
+        margin-bottom: 18px;
+    }
+
+    .detail-phone a {
+        color: #000000;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .detail-phone a:hover {
+        text-decoration: underline;
+    }
+
+    .detail-status {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin-bottom: 18px;
+    }
+
+    .detail-status--open {
+        background: #eaf7ea;
+        color: #2a7a2a;
+    }
+
+    .detail-status--closed {
+        background: #f7eaea;
+        color: #a02a2a;
+    }
+
+    .detail-route-btn {
+        display: block;
+        width: 100%;
+        padding: 12px 16px;
+        background: #000000;
+        color: #ffffff;
+        border: none;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        transition: background 0.15s ease;
+    }
+
+    .detail-route-btn:hover {
+        background: #222222;
+    }
+
+    /* ===== Адаптив ===== */
+    @media (max-width: 900px) {
+        .metal-calc__title {
+            font-size: 1.5em;
+        }
+
+        .metal-calc__layout {
+            grid-template-columns: 1fr;
+        }
+
+        .metal-calc__result {
+            padding: 24px;
+        }
+
+        .metal-calc__sum {
+            font-size: 2.8em;
+        }
+
+        .branches-section__title {
+            font-size: 1.5em;
+        }
+
+        .branches-layout {
+            grid-template-columns: 1fr;
+            grid-template-rows: 300px 1fr;
+            height: auto;
+        }
+
+        .branches-map {
+            height: 300px;
+        }
+
+        .branches-sidebar {
+            height: 400px;
+        }
+    }
+
+    @media (max-width: 500px) {
+        .metal-calc__title {
+            font-size: 1.3em;
+        }
+
+        .metal-calc__panel {
+            padding: 16px;
+        }
+
+        .metal-calc__sample {
+            padding: 8px 14px;
+            font-size: 0.9em;
+        }
+
+        .metal-calc__sum {
+            font-size: 2.4em;
+        }
+
+        .branches-section__title {
+            font-size: 1.3em;
+        }
+
+        .branches-layout {
+            grid-template-rows: 250px 1fr;
+        }
+
+        .branches-map {
+            height: 250px;
+        }
+
+        .branches-sidebar {
+            height: 360px;
+        }
+
+        .branch-item {
+            padding: 14px 18px;
+        }
+
+        .sidebar-detail-body {
+            padding-left: 18px;
+            padding-right: 18px;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <!-- ========================================================================== -->
@@ -11,7 +588,7 @@
 <section id="metalCalculator" class="metal-calc-section">
 
     <div class="metal-calc__header">
-        <h2 class="metal-calc__title">Рассчет суммы займа под залог драгоценностей</h2>
+        <h2 class="metal-calc__title">Расчет суммы займа под залог драгоценностей</h2>
     </div>
 
     <div class="metal-calc__layout">
@@ -609,583 +1186,5 @@
 
 })();
 </script>
-
-<!-- ========================================================================== -->
-<!-- СТИЛИ                                                                      -->
-<!-- ========================================================================== -->
-<style>
-    /* ==========================================================================
-       СЕКЦИЯ КАЛЬКУЛЯТОРА ЦЕН
-       ========================================================================== */
-
-    .metal-calc-section {
-        width: 100%;
-        margin: 0 auto 60px;
-    }
-
-    .metal-calc__header {
-        margin-bottom: 20px;
-    }
-
-    .metal-calc__title {
-        font-size: 1.8em;
-        font-weight: 700;
-        color: #000;
-        line-height: 1.2;
-        margin: 0;
-    }
-
-    .metal-calc__layout {
-        display: grid;
-        grid-template-columns: 1fr 380px;
-        gap: 20px;
-        align-items: stretch;
-    }
-
-    /* ===== Левая карточка ===== */
-    .metal-calc__panel {
-        background: #f7f7f7;
-        border-radius: 16px;
-        padding: 24px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    /* Табы */
-    .metal-calc__tabs {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-        background: #ececec;
-        border-radius: 999px;
-        padding: 4px;
-    }
-
-    .metal-calc__tab {
-        border: none;
-        background: transparent;
-        padding: 12px 16px;
-        border-radius: 999px;
-        font-family: inherit;
-        font-size: 1em;
-        font-weight: 600;
-        color: #000;
-        cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease;
-    }
-
-    .metal-calc__tab.is-active {
-        background: #000;
-        color: #fff;
-    }
-
-    /* Блок внутри карточки */
-    .metal-calc__block {
-        background: #efefef;
-        border-radius: 12px;
-        padding: 16px;
-    }
-
-    .metal-calc__block-title {
-        font-size: 1.05em;
-        font-weight: 600;
-        color: #000;
-        margin-bottom: 12px;
-    }
-
-    /* Пробы */
-    .metal-calc__samples {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .metal-calc__sample {
-        border: none;
-        background: #fff;
-        border-radius: 999px;
-        padding: 10px 18px;
-        font-family: inherit;
-        font-size: 0.95em;
-        font-weight: 600;
-        color: #000;
-        cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease;
-    }
-
-    .metal-calc__sample:hover {
-        background: #f0f0f0;
-    }
-
-    .metal-calc__sample.is-active {
-        background: #000;
-        color: #fff;
-    }
-
-    /* Вес */
-    .metal-calc__weight-field {
-        position: relative;
-        background: #fff;
-        border-radius: 10px;
-        padding: 10px 14px 10px;
-        margin-bottom: 12px;
-    }
-
-    .metal-calc__weight-label {
-        display: block;
-        font-size: 0.85em;
-        color: #888;
-        margin-bottom: 2px;
-    }
-
-    .metal-calc__weight-input {
-        width: 100%;
-        border: none;
-        outline: none;
-        background: transparent;
-        font-family: inherit;
-        font-size: 1.15em;
-        font-weight: 600;
-        color: #000;
-        padding: 0;
-        padding-right: 28px; /* место под крестик */
-        -moz-appearance: textfield;
-    }
-
-    .metal-calc__weight-input::-webkit-outer-spin-button,
-    .metal-calc__weight-input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    .metal-calc__weight-clear {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        border: none;
-        background: transparent;
-        color: #999;
-        font-size: 1.3em;
-        line-height: 1;
-        cursor: pointer;
-        padding: 4px 8px;
-    }
-
-    .metal-calc__weight-clear:hover {
-        color: #000;
-    }
-
-    /* Быстрые веса */
-    .metal-calc__quick-weights {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-    }
-
-    .metal-calc__qw {
-        border: none;
-        background: #e4e4e4;
-        border-radius: 999px;
-        padding: 8px 14px;
-        font-family: inherit;
-        font-size: 0.9em;
-        font-weight: 600;
-        color: #000;
-        cursor: pointer;
-        transition: background 0.15s ease;
-    }
-
-    .metal-calc__qw:hover {
-        background: #d8d8d8;
-    }
-
-    /* ===== Правая карточка: результат ===== */
-    .metal-calc__result {
-        background: #f7f7f7;
-        border-radius: 16px;
-        padding: 32px 24px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        gap: 8px;
-    }
-
-    .metal-calc__sum {
-        font-size: 4.8em;
-        font-weight: 700;
-        color: #000;
-        line-height: 1.1;
-    }
-
-    .metal-calc__sum-label {
-        font-size: 1.1em;
-        font-weight: 600;
-        color: #000;
-        margin-bottom: 8px;
-    }
-
-    .metal-calc__disclaimer {
-        font-size: 0.85em;
-        color: #888;
-        line-height: 1.4;
-        margin-top: 16px;
-    }
-
-    /* ==========================================================================
-       СЕКЦИЯ ФИЛИАЛОВ
-       ========================================================================== */
-
-    .branches-section {
-        width: 100%;
-        padding: 0;
-        margin: 0 auto 40px;
-    }
-
-    /* ===== Заголовок блока ===== */
-    .branches-section__header {
-        margin-bottom: 20px;
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 20px;
-        flex-wrap: wrap;
-    }
-
-    .branches-section__title {
-        font-size: 1.8em;
-        font-weight: 700;
-        color: #000000;
-        margin: 0;
-        line-height: 1.2;
-    }
-
-    .branches-section__subtitle {
-        font-size: 1em;
-        color: #666666;
-        margin: 0;
-    }
-
-    /* ===== Сетка: карта + список ===== */
-    .branches-layout {
-        display: grid;
-        grid-template-columns: 1fr 420px;
-        gap: 20px;
-        height: 520px;
-        align-items: stretch;
-    }
-
-    /* ===== Карта ===== */
-    .branches-map {
-        width: 100%;
-        height: 100%;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #e5e5e5;
-        background: #f7f7f7;
-    }
-
-    /* ===== Боковая панель ===== */
-    .branches-sidebar {
-        height: 100%;
-        background: #ffffff;
-        border: 1px solid #e5e5e5;
-        border-radius: 12px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .sidebar-view {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        min-height: 0;
-    }
-
-    .sidebar-view[hidden] {
-        display: none;
-    }
-
-    /* ===== Список филиалов (со скроллом) ===== */
-    .branches-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-    }
-
-    .branches-list::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .branches-list::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .branches-list::-webkit-scrollbar-thumb {
-        background: #d0d0d0;
-        border-radius: 3px;
-    }
-
-    .branches-list::-webkit-scrollbar-thumb:hover {
-        background: #b0b0b0;
-    }
-
-    /* ===== Элемент списка ===== */
-    .branch-item {
-        display: block;
-        padding: 16px 24px;
-        border-bottom: 1px solid #f5f5f5;
-        cursor: pointer;
-        transition: background 0.15s ease;
-    }
-
-    .branch-item:last-child {
-        border-bottom: none;
-    }
-
-    .branch-item:hover {
-        background: #fafafa;
-    }
-
-    .branch-item.is-active {
-        background: #f0f0f0;
-    }
-
-    .branch-item__row {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .branch-item__info {
-        flex: 1;
-        min-width: 0;
-    }
-
-    .branch-item__address {
-        font-size: 1em;
-        font-weight: 600;
-        color: #000000;
-        margin-bottom: 4px;
-        word-wrap: break-word;
-    }
-
-    .branch-item__schedule {
-        font-size: 0.9em;
-        color: #666666;
-    }
-
-    .branch-item__arrow {
-        font-size: 1.2em;
-        color: #999999;
-        flex-shrink: 0;
-        margin-top: 2px;
-    }
-
-    /* ===== Детальная панель ===== */
-    .sidebar-detail-header {
-        padding: 12px 20px;
-        border-bottom: 1px solid #f0f0f0;
-        flex-shrink: 0;
-    }
-
-    .sidebar-back {
-        background: transparent;
-        border: none;
-        color: #000000;
-        font-size: 1.1em;
-        cursor: pointer;
-        padding: 6px 4px;
-        font-family: inherit;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .sidebar-back:hover {
-        color: #666666;
-    }
-
-    .sidebar-detail-body {
-        padding: 20px 24px 24px;
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0;
-    }
-
-    .sidebar-detail-body::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    .sidebar-detail-body::-webkit-scrollbar-thumb {
-        background: #d0d0d0;
-        border-radius: 3px;
-    }
-
-    .detail-title {
-        font-size: 1.3em;
-        font-weight: 700;
-        color: #000000;
-        margin: 0 0 6px;
-        line-height: 1.3;
-    }
-
-    .detail-city {
-        font-size: 0.95em;
-        color: #666666;
-        margin-bottom: 16px;
-    }
-
-    .detail-schedule {
-        font-size: 0.95em;
-        color: #333333;
-        margin-bottom: 14px;
-    }
-
-    .detail-phone {
-        font-size: 1em;
-        color: #000000;
-        margin-bottom: 18px;
-    }
-
-    .detail-phone a {
-        color: #000000;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    .detail-phone a:hover {
-        text-decoration: underline;
-    }
-
-    .detail-status {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 0.85em;
-        font-weight: 600;
-        margin-bottom: 18px;
-    }
-
-    .detail-status--open {
-        background: #eaf7ea;
-        color: #2a7a2a;
-    }
-
-    .detail-status--closed {
-        background: #f7eaea;
-        color: #a02a2a;
-    }
-
-    .detail-route-btn {
-        display: block;
-        width: 100%;
-        padding: 12px 16px;
-        background: #000000;
-        color: #ffffff;
-        border: none;
-        border-radius: 8px;
-        font-family: inherit;
-        font-size: 1em;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: center;
-        text-decoration: none;
-        transition: background 0.15s ease;
-    }
-
-    .detail-route-btn:hover {
-        background: #222222;
-    }
-
-    /* ===== Адаптив ===== */
-    @media (max-width: 900px) {
-        .metal-calc__title {
-            font-size: 1.5em;
-        }
-
-        .metal-calc__layout {
-            grid-template-columns: 1fr;
-        }
-
-        .metal-calc__result {
-            padding: 24px;
-        }
-
-        .metal-calc__sum {
-            font-size: 2.2em;
-        }
-
-        .branches-section__title {
-            font-size: 1.5em;
-        }
-
-        .branches-layout {
-            grid-template-columns: 1fr;
-            grid-template-rows: 300px 1fr;
-            height: auto;
-        }
-
-        .branches-map {
-            height: 300px;
-        }
-
-        .branches-sidebar {
-            height: 400px;
-        }
-    }
-
-    @media (max-width: 500px) {
-        .metal-calc__title {
-            font-size: 1.3em;
-        }
-
-        .metal-calc__panel {
-            padding: 16px;
-        }
-
-        .metal-calc__sample {
-            padding: 8px 14px;
-            font-size: 0.9em;
-        }
-
-        .metal-calc__sum {
-            font-size: 1.9em;
-        }
-
-        .branches-section__title {
-            font-size: 1.3em;
-        }
-
-        .branches-layout {
-            grid-template-rows: 250px 1fr;
-        }
-
-        .branches-map {
-            height: 250px;
-        }
-
-        .branches-sidebar {
-            height: 360px;
-        }
-
-        .branch-item {
-            padding: 14px 18px;
-        }
-
-        .sidebar-detail-body {
-            padding-left: 18px;
-            padding-right: 18px;
-        }
-    }
-</style>
 
 {% endblock %}
