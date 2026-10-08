@@ -1,8 +1,9 @@
 from django.urls import path
-from . import views
+
+from .views import user_calculators
 
 app_name = 'app_prices'
 
 urlpatterns = [
-    # Пока пусто, или добавьте свои маршруты
+    path('api/metal-prices/', user_calculators.metal_prices_api, name='metal_prices_api'),
 ]

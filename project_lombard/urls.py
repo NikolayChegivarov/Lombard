@@ -9,8 +9,9 @@ urlpatterns = [
     # 👇 API-маршруты приложения app_branches
     path('', include('app_branches.urls', namespace='app_branches')),
 
+    path('', include('app_prices.urls', namespace='app_prices')),
+
     # 👇 Временно закомментированы (views ещё не готовы)
-    # path('', include('app_prices.urls', namespace='app_prices')),
     # path('', include('app_common.urls', namespace='app_common')),
     # path('', include('app_accounts.urls', namespace='app_accounts')),
 

@@ -287,6 +287,12 @@
                 <!-- Серебро -->
                 <div>
                     <h5 style="color: #708090; margin-bottom: 10px;">Серебро:</h5>
+                    {% if calculated_prices.silver_875 %}
+                    <div class="calculated-price-row">
+                        <span class="calculated-price-label">Проба 875:</span>
+                        <span class="calculated-price-value">{{ calculated_prices.silver_875|floatformat:2 }} руб./г</span>
+                    </div>
+                    {% endif %}
                     {% if calculated_prices.silver_925 %}
                     <div class="calculated-price-row">
                         <span class="calculated-price-label">Проба 925:</span>

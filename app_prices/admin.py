@@ -5,12 +5,16 @@ from django.urls import path
 from django.shortcuts import render
 from decimal import Decimal, InvalidOperation
 from django.contrib import messages
+
 from .models import MetalPrice
 
 
-# -------------------------- Цены на пробы ----------------------
+# ==============================================================================
+# ФУНКЦИИ РАСЧЁТА ЦЕН ДЛЯ АДМИНКИ
+# ==============================================================================
+
 def price_admin_calculator(main_proba, decimals=0):
-    """Расчёт цен на пробы золота от базовой цены 585 пробы (для админки)."""
+    """Расчёт цен на пробы золота от базовой 585 пробы (для админки)."""
     proba_375 = round(main_proba * 375 / 585, decimals)
     proba_500 = round(main_proba * 500 / 585, decimals)
     proba_585 = main_proba
@@ -24,6 +28,22 @@ def price_admin_calculator(main_proba, decimals=0):
         "proba_750": proba_750,
         "proba_850": proba_850,
     }
+
+
+def silver_price_admin_calculator(base_925_price, decimals=0):
+    """Расчёт цен на пробы серебра от базовой 925 пробы (для админки)."""
+    proba_875 = round(base_925_price * 875 / 925, decimals)
+    proba_925 = base_925_price
+
+    return {
+        "proba_875": proba_875,
+        "proba_925": proba_925,
+    }
+
+
+# ==============================================================================
+# АДМИНКА
+# ==============================================================================
 
 @admin.register(MetalPrice)
 class MetalPriceAdmin(admin.ModelAdmin):
@@ -80,11 +100,13 @@ class MetalPriceAdmin(admin.ModelAdmin):
                 'current_price': current_prices.get(key, '—'),
             })
 
-        prices_display.append({
-            'metal': 'silver',
-            'sample': 925,
-            'current_price': current_prices.get('silver_925', '—'),
-        })
+        for sample in [875, 925]:
+            key = f"silver_{sample}"
+            prices_display.append({
+                'metal': 'silver',
+                'sample': sample,
+                'current_price': current_prices.get(key, '—'),
+            })
 
         extra_context.update({
             'prices_display': prices_display,
@@ -105,14 +127,18 @@ class MetalPriceAdmin(admin.ModelAdmin):
         return custom_urls + urls
 
     def update_prices_view(self, request):
+        current_prices = MetalPrice.get_current_prices_dict()
+
         context = {
             **self.admin_site.each_context(request),
             'title': 'Обновление цен на пробы',
             'opts': self.model._meta,
             'app_label': self.model._meta.app_label,
+            'current_prices': current_prices,
+            # Предзаполнение полей текущими ценами (строка с точкой — для type="number")
+            'gold_585_price': str(current_prices.get('gold_585', '')),
+            'silver_925_price': str(current_prices.get('silver_925', '')),
         }
-
-        current_prices = MetalPrice.get_current_prices_dict()
 
         if request.method == 'POST':
             if 'calculate' in request.POST or 'recalculate' in request.POST:
@@ -126,6 +152,7 @@ class MetalPriceAdmin(admin.ModelAdmin):
                     if gold_585_price <= 0 or silver_925_price <= 0:
                         raise ValueError("Цена должна быть больше 0")
 
+                    # --- Золото ---
                     calculated_gold = price_admin_calculator(gold_585_price)
 
                     calculated_prices = {}
@@ -141,12 +168,15 @@ class MetalPriceAdmin(admin.ModelAdmin):
                             proba_key = f'proba_{sample}'
                             calculated_prices[f'gold_{sample}'] = calculated_gold.get(proba_key, Decimal('0'))
 
-                    calculated_prices['silver_925'] = silver_925_price
+                    # --- Серебро ---
+                    calculated_silver = silver_price_admin_calculator(silver_925_price)
+                    calculated_prices['silver_875'] = calculated_silver['proba_875']
+                    calculated_prices['silver_925'] = calculated_silver['proba_925']
 
                     context.update({
                         'calculated_prices': calculated_prices,
-                        'gold_585_price': gold_585_price,
-                        'silver_925_price': silver_925_price,
+                        'gold_585_price': str(gold_585_price),
+                        'silver_925_price': str(silver_925_price),
                         'show_results': True,
                     })
 
@@ -164,6 +194,7 @@ class MetalPriceAdmin(admin.ModelAdmin):
                     if gold_585_price <= 0 or silver_925_price <= 0:
                         raise ValueError("Цена должна быть больше 0")
 
+                    # --- Золото ---
                     gold_prices = {}
                     gold_samples = [375, 500, 585, 750, 850]
 
@@ -183,7 +214,15 @@ class MetalPriceAdmin(admin.ModelAdmin):
 
                         gold_prices[sample] = price
 
-                    self.update_all_prices_in_db(gold_585_price, silver_925_price, gold_prices)
+                    # --- Серебро ---
+                    silver_prices = silver_price_admin_calculator(silver_925_price)
+
+                    self.update_all_prices_in_db(
+                        gold_585_price,
+                        silver_925_price,
+                        gold_prices,
+                        silver_prices,
+                    )
 
                     messages.success(request, 'Цены успешно обновлены!')
                     return HttpResponseRedirect('../')
@@ -192,13 +231,13 @@ class MetalPriceAdmin(admin.ModelAdmin):
                     messages.error(request, f'Ошибка при сохранении: {str(e)}')
 
         context.update({
-            'current_prices': current_prices,
-            'show_results': 'show_results' in context and context['show_results'],
+            'show_results': context.get('show_results', False),
         })
 
         return render(request, 'admin/metal_price_update.html', context)
 
-    def update_all_prices_in_db(self, gold_585_price, silver_925_price, gold_prices):
+    def update_all_prices_in_db(self, gold_585_price, silver_925_price, gold_prices, silver_prices):
+        # --- Золото ---
         gold_samples = [375, 500, 585, 750, 850]
         for sample in gold_samples:
             price = gold_prices.get(sample, Decimal('0'))
@@ -208,9 +247,16 @@ class MetalPriceAdmin(admin.ModelAdmin):
                 defaults={'price_per_gram': price}
             )
 
+        # --- Серебро ---
         MetalPrice.objects.update_or_create(
             metal_type='silver',
             sample=925,
             defaults={'price_per_gram': silver_925_price}
         )
 
+        silver_875 = silver_prices.get('proba_875', Decimal('0'))
+        MetalPrice.objects.update_or_create(
+            metal_type='silver',
+            sample=875,
+            defaults={'price_per_gram': silver_875}
+        )
