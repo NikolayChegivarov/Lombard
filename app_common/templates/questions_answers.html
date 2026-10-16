@@ -1,208 +1,222 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Часто задаваемые вопросы | Ломбард Народный{% endblock %}
+{% block title %}Вопросы и ответы — Ломбард Народный{% endblock %}
 
 {% block content %}
-<div class="faq-container">
-    <h1>Часто задаваемые вопросы</h1>
-    
-    <div class="faq-list">
-        <!-- Вопрос 1 -->
-        <div class="faq-item">
-            <button class="faq-question">
-                Покупаете ли вы стоматологическое золото(коронки)?
-                <span class="faq-icon">+</span>
+<style>
+    /* ============= ВОПРОСЫ И ОТВЕТЫ ============= */
+    .faq {
+        max-width: 820px;
+        margin: 40px auto 60px;
+        padding: 0 4px;
+    }
+
+    .faq__title {
+        font-size: 2em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        margin-bottom: 40px;
+    }
+
+    .faq__list {
+        border-top: 1px solid #eeeeee;
+    }
+
+    .faq__item {
+        border-bottom: 1px solid #eeeeee;
+    }
+
+    .faq__question {
+        width: 100%;
+        background: none;
+        border: none;
+        text-align: left;
+        padding: 22px 0;
+        font-family: inherit;
+        font-size: 1em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .faq__icon {
+        flex-shrink: 0;
+        font-size: 1.5em;
+        font-weight: 300;
+        line-height: 1;
+        color: #e30613;
+        transition: transform 0.25s ease;
+    }
+
+    .faq__answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+
+    .faq__answer p {
+        margin: 0;
+        padding: 0 0 22px;
+        font-size: 1em;
+        line-height: 1.7;
+        color: #000000;
+        max-width: 90%;
+    }
+
+    /* Открытое состояние */
+    .faq__item.is-active .faq__answer {
+        max-height: 500px;
+    }
+
+    .faq__item.is-active .faq__icon {
+        transform: rotate(45deg);
+    }
+
+    /* ============= АДАПТИВНОСТЬ ============= */
+    @media (max-width: 767px) {
+        .faq {
+            margin: 24px auto 40px;
+        }
+
+        .faq__title {
+            font-size: 1.6em;
+            margin-bottom: 28px;
+        }
+
+        .faq__question {
+            font-size: 0.95em;
+            padding: 18px 0;
+        }
+
+        .faq__answer p {
+            padding-bottom: 18px;
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .faq__title {
+            font-size: 1.4em;
+        }
+
+        .faq__question {
+            font-size: 0.9em;
+        }
+
+        .faq__answer p {
+            font-size: 0.95em;
+        }
+    }
+</style>
+
+<div class="faq">
+    <h1 class="faq__title">Вопросы и ответы</h1>
+
+    <div class="faq__list">
+        <div class="faq__item">
+            <button class="faq__question" type="button">
+                Покупаете ли вы стоматологическое золото (коронки)?
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
+            <div class="faq__answer">
                 <p>Да, конечно.</p>
             </div>
         </div>
 
-        <!-- Вопрос 2 -->
-        <div class="faq-item">
-            <button class="faq-question">
+        <div class="faq__item">
+            <button class="faq__question" type="button">
                 Может ли выкупить залоговую вещь друг, муж, жена, родственник?
-                <span class="faq-icon">+</span>
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
+            <div class="faq__answer">
                 <p>Выкупить украшение может только залогодатель при наличии паспорта. Родственники и другие близкие залогодателю люди могут лишь оформить перезалог при наличии залоговой квитанции.</p>
             </div>
         </div>
 
-        <!-- Вопрос 3 -->
-        <div class="faq-item">
-            <button class="faq-question">
+        <div class="faq__item">
+            <button class="faq__question" type="button">
                 Можно ли погасить залог частями?
-                <span class="faq-icon">+</span>
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
+            <div class="faq__answer">
                 <p>Да, можно. В этом случае проценты пересчитываются.</p>
             </div>
         </div>
 
-        <!-- Вопрос 4 -->
-        <div class="faq-item">
-            <button class="faq-question">
+        <div class="faq__item">
+            <button class="faq__question" type="button">
                 Принимаются изделия без проб?
-                <span class="faq-icon">+</span>
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
-                <p>Да, мы принимаем украшения без пробы, но обязательно проверяем её с помощью специальных реактивов. Применение этих средства никаким образом не скажется на внешнем виде изделия.</p>
+            <div class="faq__answer">
+                <p>Да, мы принимаем украшения без пробы, но обязательно проверяем её с помощью специальных реактивов. Применение этих средств никаким образом не скажется на внешнем виде изделия.</p>
             </div>
         </div>
 
-        <!-- Вопрос 5 -->
-        <div class="faq-item">
-            <button class="faq-question">
+        <div class="faq__item">
+            <button class="faq__question" type="button">
                 Можно ли оставить изделие на реализацию?
-                <span class="faq-icon">+</span>
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
+            <div class="faq__answer">
                 <p>Мы не принимаем никакие драгоценности на реализацию. Но в любом из наших ломбардов Вы получите достойную цену за своё украшение.</p>
             </div>
         </div>
 
-        <!-- Вопрос 6 -->
-        <div class="faq-item">
-            <button class="faq-question">
-                Что будет, если я не успею выкупить украшение к концу 2го месяца?
-                <span class="faq-icon">+</span>
+        <div class="faq__item">
+            <button class="faq__question" type="button">
+                Что будет, если я не успею выкупить украшение к концу 2-го месяца?
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
+            <div class="faq__answer">
                 <p>Согласно закону, такие изделия поступают на реализацию (продажу). Но Вы можете пролонгировать действие залога, позвонив в тот ломбард, где украшение было заложено.</p>
             </div>
         </div>
 
-        <!-- Вопрос 7 -->
-        <div class="faq-item">
-            <button class="faq-question">
+        <div class="faq__item">
+            <button class="faq__question" type="button">
                 Когда можно выкупить изделие?
-                <span class="faq-icon">+</span>
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
-                <p>Украшение можно выкупить абсолютно в любой, даже в день после залога.</p>
+            <div class="faq__answer">
+                <p>Украшение можно выкупить абсолютно в любой день, даже на следующий день после залога.</p>
             </div>
         </div>
 
-        <!-- Вопрос 8 -->
-        <div class="faq-item">
-            <button class="faq-question">
+        <div class="faq__item">
+            <button class="faq__question" type="button">
                 Учитываются ли камни при оценке изделия?
-                <span class="faq-icon">+</span>
+                <span class="faq__icon">+</span>
             </button>
-            <div class="faq-answer">
+            <div class="faq__answer">
                 <p>Нет, вес вставок при залоге не учитывается. Он вычитается согласно весу аналогичных камней.</p>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .faq-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 2rem 0;
-    }
-
-    .faq-container h1 {
-        text-align: center;
-        margin-bottom: 2rem;
-        color: #333;
-        font-size: 2rem;
-    }
-
-    .faq-list {
-        border-top: 1px solid #e0e0e0;
-    }
-
-    .faq-item {
-        border-bottom: 1px solid #e0e0e0;
-    }
-
-    .faq-question {
-        width: 100%;
-        background: none;
-        border: none;
-        text-align: left;
-        padding: 1.5rem 1rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #333;
-        cursor: pointer;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        transition: background-color 0.3s ease;
-    }
-
-    .faq-question:hover {
-        background-color: #f9f9f9;
-    }
-
-    .faq-icon {
-        font-size: 1.5rem;
-        font-weight: 300;
-        transition: transform 0.3s ease;
-    }
-
-    .faq-answer {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.3s ease, padding 0.3s ease;
-        padding: 0 1rem;
-    }
-
-    .faq-answer p {
-        margin: 0;
-        padding: 1rem 0;
-        color: #555;
-        line-height: 1.6;
-    }
-
-    /* Активный класс для открытого аккордеона */
-    .faq-item.active .faq-answer {
-        max-height: 500px; /* Достаточно большое значение для контента */
-        padding: 0 1rem;
-    }
-
-    .faq-item.active .faq-icon {
-        transform: rotate(45deg);
-    }
-
-    @media (max-width: 768px) {
-        .faq-container {
-            padding: 1rem;
-        }
-        
-        .faq-container h1 {
-            font-size: 1.5rem;
-        }
-        
-        .faq-question {
-            font-size: 1rem;
-            padding: 1.2rem 0.5rem;
-        }
-    }
-</style>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const faqItems = document.querySelectorAll('.faq-item');
-        
+    document.addEventListener('DOMContentLoaded', function () {
+        const faqItems = document.querySelectorAll('.faq__item');
+
         faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question');
-            
+            const question = item.querySelector('.faq__question');
+
             question.addEventListener('click', () => {
-                // Закрываем все другие открытые вопросы
-                faqItems.forEach(otherItem => {
-                    if (otherItem !== item && otherItem.classList.contains('active')) {
-                        otherItem.classList.remove('active');
+                faqItems.forEach(other => {
+                    if (other !== item && other.classList.contains('is-active')) {
+                        other.classList.remove('is-active');
                     }
                 });
-                
-                // Переключаем текущий вопрос
-                item.classList.toggle('active');
+
+                item.classList.toggle('is-active');
             });
         });
     });

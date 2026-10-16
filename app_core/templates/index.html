@@ -1,10 +1,132 @@
 {% extends 'base/base.html' %}
 {% load static %}
+{% load carousel_tags %}
 
 {% block title %}Главная - Ломбард Народный{% endblock %}
 
 {% block extrastyle %}
 <style>
+    /* ==========================================================================
+       СЕКЦИЯ КАРУСЕЛИ
+       ========================================================================== */
+
+    .carousel-section {
+        width: 100%;
+        margin: 0 auto 40px;
+    }
+
+    .carousel {
+        position: relative;
+        width: 100%;
+        border-radius: 16px;
+        overflow: hidden;
+        background: #f2f2f2;
+        aspect-ratio: 16 / 6;
+    }
+
+    .carousel__track {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .carousel__slide {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+        pointer-events: none;
+    }
+
+    .carousel__slide.is-active {
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 1;
+    }
+
+    .carousel__image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        user-select: none;
+        -webkit-user-drag: none;
+    }
+
+    .carousel__caption {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 18px 24px;
+        color: #fff;
+        font-size: 1.05em;
+        font-weight: 600;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0));
+    }
+
+    /* Стрелки */
+    .carousel__arrow {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 2;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.85);
+        color: #000;
+        font-size: 1.6em;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .carousel__arrow:hover {
+        background: #fff;
+    }
+
+    .carousel__arrow--prev { left: 16px; }
+    .carousel__arrow--next { right: 16px; }
+
+    /* Точки */
+    .carousel__dots {
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        transform: translateX(-50%);
+        z-index: 2;
+        display: flex;
+        gap: 8px;
+        padding: 6px 10px;
+        background: rgba(0, 0, 0, 0.25);
+        border-radius: 999px;
+    }
+
+    .carousel__dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        border: none;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.15s ease;
+    }
+
+    .carousel__dot:hover {
+        background: #fff;
+    }
+
+    .carousel__dot.is-active {
+        background: #fff;
+        transform: scale(1.2);
+    }
+
     /* ==========================================================================
        СЕКЦИЯ КАЛЬКУЛЯТОРА ЦЕН
        ========================================================================== */
@@ -140,7 +262,7 @@
         font-weight: 600;
         color: #000;
         padding: 0;
-        padding-right: 28px; /* место под крестик */
+        padding-right: 28px;
         -moz-appearance: textfield;
     }
 
@@ -499,6 +621,19 @@
 
     /* ===== Адаптив ===== */
     @media (max-width: 900px) {
+        .carousel {
+            aspect-ratio: 16 / 9;
+        }
+
+        .carousel__arrow {
+            width: 38px;
+            height: 38px;
+            font-size: 1.4em;
+        }
+
+        .carousel__arrow--prev { left: 10px; }
+        .carousel__arrow--next { right: 10px; }
+
         .metal-calc__title {
             font-size: 1.5em;
         }
@@ -535,6 +670,16 @@
     }
 
     @media (max-width: 500px) {
+        .carousel {
+            aspect-ratio: 4 / 3;
+            border-radius: 12px;
+        }
+
+        .carousel__caption {
+            font-size: 0.95em;
+            padding: 12px 16px;
+        }
+
         .metal-calc__title {
             font-size: 1.3em;
         }
@@ -581,6 +726,56 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- ========================================================================== -->
+<!-- СЕКЦИЯ: КАРУСЕЛЬ                                                           -->
+<!-- ========================================================================== -->
+{% get_carousel_images as carousel_images %}
+
+{% if carousel_images %}
+<section class="carousel-section" id="carousel">
+    <div class="carousel"
+         data-count="{{ carousel_images|length }}"
+         data-autoplay="true"
+         data-interval="5000">
+
+        <div class="carousel__track" id="carouselTrack">
+            {% for slide in carousel_images %}
+                <div class="carousel__slide {% if forloop.first %}is-active{% endif %}"
+                     data-index="{{ forloop.counter0 }}">
+                    <img src="{{ slide.image.url }}"
+                         alt="{{ slide.title|default:'Слайд' }}"
+                         class="carousel__image"
+                         loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                    {% if slide.title %}
+                        <div class="carousel__caption">{{ slide.title }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if carousel_images|length > 1 %}
+            <button type="button"
+                    class="carousel__arrow carousel__arrow--prev"
+                    id="carouselPrev"
+                    aria-label="Предыдущий слайд">‹</button>
+            <button type="button"
+                    class="carousel__arrow carousel__arrow--next"
+                    id="carouselNext"
+                    aria-label="Следующий слайд">›</button>
+
+            <div class="carousel__dots" id="carouselDots">
+                {% for slide in carousel_images %}
+                    <button type="button"
+                            class="carousel__dot {% if forloop.first %}is-active{% endif %}"
+                            data-index="{{ forloop.counter0 }}"
+                            aria-label="Слайд {{ forloop.counter }}"></button>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
 
 <!-- ========================================================================== -->
 <!-- СЕКЦИЯ: КАЛЬКУЛЯТОР ЦЕН НА ДРАГОЦЕННОСТИ                                   -->
@@ -694,6 +889,122 @@
 <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU&apikey={{ YANDEX_MAPS_API_KEY }}" type="text/javascript"></script>
 
 <!-- ========================================================================== -->
+<!-- JS: карусель                                                               -->
+<!-- ========================================================================== -->
+<script>
+(function () {
+    'use strict';
+
+    const root = document.getElementById('carousel');
+    if (!root) return;
+
+    const carousel = root.querySelector('.carousel');
+    if (!carousel) return;
+
+    const total = parseInt(carousel.dataset.count || '0', 10);
+    if (total <= 1) return; // для 1 слайда никакие контролы не нужны
+
+    const slides  = Array.from(carousel.querySelectorAll('.carousel__slide'));
+    const dots    = Array.from(carousel.querySelectorAll('.carousel__dot'));
+    const prevBtn = carousel.querySelector('#carouselPrev');
+    const nextBtn = carousel.querySelector('#carouselNext');
+
+    const autoplay = carousel.dataset.autoplay === 'true';
+    const interval = parseInt(carousel.dataset.interval || '5000', 10);
+
+    let currentIndex = 0;
+    let timer = null;
+    let isPaused = false;
+
+    function goTo(index) {
+        if (index < 0) index = total - 1;
+        if (index >= total) index = 0;
+
+        slides.forEach(function (s, i) {
+            s.classList.toggle('is-active', i === index);
+        });
+        dots.forEach(function (d, i) {
+            d.classList.toggle('is-active', i === index);
+        });
+
+        currentIndex = index;
+    }
+
+    function next() { goTo(currentIndex + 1); }
+    function prev() { goTo(currentIndex - 1); }
+
+    function startAutoplay() {
+        if (!autoplay) return;
+        stopAutoplay();
+        timer = setInterval(function () {
+            if (!isPaused) next();
+        }, interval);
+    }
+
+    function stopAutoplay() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+            next();
+            startAutoplay();
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+            prev();
+            startAutoplay();
+        });
+    }
+
+    dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+            const idx = parseInt(dot.dataset.index, 10);
+            if (!isNaN(idx)) {
+                goTo(idx);
+                startAutoplay();
+            }
+        });
+    });
+
+    // Пауза при наведении
+    carousel.addEventListener('mouseenter', function () { isPaused = true; });
+    carousel.addEventListener('mouseleave', function () { isPaused = false; });
+
+    // Свайпы на мобильных
+    let touchStartX = null;
+    carousel.addEventListener('touchstart', function (e) {
+        touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    carousel.addEventListener('touchend', function (e) {
+        if (touchStartX === null) return;
+        const dx = e.changedTouches[0].clientX - touchStartX;
+        if (Math.abs(dx) > 40) {
+            if (dx < 0) { next(); } else { prev(); }
+            startAutoplay();
+        }
+        touchStartX = null;
+    });
+
+    // Клавиатура
+    root.setAttribute('tabindex', '0');
+    root.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') { next(); startAutoplay(); }
+        if (e.key === 'ArrowLeft')  { prev(); startAutoplay(); }
+    });
+
+    goTo(0);
+    startAutoplay();
+})();
+</script>
+
+<!-- ========================================================================== -->
 <!-- JS: калькулятор цен на драгоценности                                       -->
 <!-- ========================================================================== -->
 <script>
@@ -729,7 +1040,7 @@
     function renderSamples() {
         samplesEl.innerHTML = '';
         const samplesObj = prices[currentMetal] || {};
-        const samples = Object.keys(samplesObj).map(Number).sort((a, b) => a - b);
+        const samples = Object.keys(samplesObj).map(Number).sort(function (a, b) { return a - b; });
 
         if (samples.length === 0) {
             // Нет ни одной пробы с ценой — скрываем весь блок выбора
@@ -741,11 +1052,11 @@
         samplesEl.closest('.metal-calc__block').style.display = '';
 
         // Если текущая выбранная проба исчезла — берём первую доступную
-        if (!samples.includes(currentSample)) {
-            currentSample = samples.includes(DEFAULT_SAMPLE) ? DEFAULT_SAMPLE : samples[0];
+        if (samples.indexOf(currentSample) === -1) {
+            currentSample = samples.indexOf(DEFAULT_SAMPLE) !== -1 ? DEFAULT_SAMPLE : samples[0];
         }
 
-        for (const sample of samples) {
+        samples.forEach(function (sample) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'metal-calc__sample' + (sample === currentSample ? ' is-active' : '');
@@ -756,13 +1067,13 @@
                 updateSum();
             });
             samplesEl.appendChild(btn);
-        }
+        });
     }
 
     // -------- Отрисовка быстрых весов --------
     function renderQuickWeights() {
         quickWeightsEl.innerHTML = '';
-        for (const w of QUICK_WEIGHTS) {
+        QUICK_WEIGHTS.forEach(function (w) {
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'metal-calc__qw';
@@ -772,7 +1083,7 @@
                 updateSum();
             });
             quickWeightsEl.appendChild(btn);
-        }
+        });
     }
 
     // -------- Подсчёт --------
@@ -804,7 +1115,9 @@
                 currentMetal = metal;
                 currentSample = null; // сброс — renderSamples подберёт дефолт
 
-                tabs.forEach(t => t.classList.toggle('is-active', t === tab));
+                tabs.forEach(function (t) {
+                    t.classList.toggle('is-active', t === tab);
+                });
                 renderSamples();
                 updateSum();
             });
@@ -823,11 +1136,11 @@
     // -------- Загрузка --------
     function loadPrices() {
         return fetch(API_URL)
-            .then(r => r.json())
-            .then(data => {
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
                 prices = data;
             })
-            .catch(err => {
+            .catch(function (err) {
                 console.error('Не удалось загрузить цены:', err);
                 prices = { gold: {}, silver: {} };
             });
@@ -843,7 +1156,9 @@
             // Устанавливаем дефолтную пробу для текущего металла
             const goldKeys = Object.keys(prices.gold).map(Number);
             if (currentMetal === 'gold') {
-                currentSample = goldKeys.includes(DEFAULT_SAMPLE) ? DEFAULT_SAMPLE : goldKeys[0] || null;
+                currentSample = goldKeys.indexOf(DEFAULT_SAMPLE) !== -1
+                    ? DEFAULT_SAMPLE
+                    : (goldKeys[0] || null);
             }
             renderSamples();
             updateSum();
@@ -964,7 +1279,7 @@
         const n = branches.length;
         const word = pluralizeBranches(n);
 
-        branchesSectionSubtitle.textContent = `Город: ${cityFromData} · ${n} ${word}`;
+        branchesSectionSubtitle.textContent = 'Город: ' + cityFromData + ' · ' + n + ' ' + word;
     }
 
     // ==================== СПИСОК ====================
@@ -990,15 +1305,14 @@
 
             const shortSchedule = buildShortSchedule(branch.schedule);
 
-            li.innerHTML = `
-                <div class="branch-item__row">
-                    <div class="branch-item__info">
-                        <div class="branch-item__address">${esc(branch.address)}</div>
-                        <div class="branch-item__schedule">${esc(shortSchedule)}</div>
-                    </div>
-                    <div class="branch-item__arrow">→</div>
-                </div>
-            `;
+            li.innerHTML =
+                '<div class="branch-item__row">' +
+                    '<div class="branch-item__info">' +
+                        '<div class="branch-item__address">' + esc(branch.address) + '</div>' +
+                        '<div class="branch-item__schedule">' + esc(shortSchedule) + '</div>' +
+                    '</div>' +
+                    '<div class="branch-item__arrow">→</div>' +
+                '</div>';
 
             li.addEventListener('click', function() {
                 focusBranch(branch.id);
@@ -1014,24 +1328,19 @@
         const shortSchedule = buildShortSchedule(branch.schedule);
         const statusClass = branch.is_open_now ? 'detail-status--open' : 'detail-status--closed';
         const statusText = branch.is_open_now ? 'Открыт' : 'Закрыт';
-        const routeUrl = `https://yandex.ru/maps/?rtext=~${branch.latitude},${branch.longitude}&rtt=auto`;
+        const routeUrl = 'https://yandex.ru/maps/?rtext=~' + branch.latitude + ',' + branch.longitude + '&rtt=auto';
 
-        sidebarDetailBody.innerHTML = `
-            <h3 class="detail-title">${esc(branch.address)}</h3>
-            <div class="detail-city">г. ${esc(branch.city)}</div>
-
-            <div class="detail-schedule">${esc(shortSchedule)}</div>
-
-            <div class="detail-phone">
-                <a href="tel:${esc(branch.phone)}">${esc(branch.formatted_phone || branch.phone)}</a>
-            </div>
-
-            <span class="detail-status ${statusClass}">${esc(statusText)}</span>
-
-            <a href="${routeUrl}" target="_blank" rel="noopener" class="detail-route-btn">
-                Построить маршрут
-            </a>
-        `;
+        sidebarDetailBody.innerHTML =
+            '<h3 class="detail-title">' + esc(branch.address) + '</h3>' +
+            '<div class="detail-city">г. ' + esc(branch.city) + '</div>' +
+            '<div class="detail-schedule">' + esc(shortSchedule) + '</div>' +
+            '<div class="detail-phone">' +
+                '<a href="tel:' + esc(branch.phone) + '">' + esc(branch.formatted_phone || branch.phone) + '</a>' +
+            '</div>' +
+            '<span class="detail-status ' + statusClass + '">' + esc(statusText) + '</span>' +
+            '<a href="' + routeUrl + '" target="_blank" rel="noopener" class="detail-route-btn">' +
+                'Построить маршрут' +
+            '</a>';
     }
 
     // ==================== ПЕРЕКЛЮЧЕНИЕ ВЬЮХ ====================
@@ -1040,7 +1349,7 @@
         sidebarDetail.hidden = true;
         sidebarList.hidden = false;
 
-        document.querySelectorAll('.branch-item.is-active').forEach(el => {
+        document.querySelectorAll('.branch-item.is-active').forEach(function (el) {
             el.classList.remove('is-active');
         });
 
@@ -1061,11 +1370,11 @@
         sidebarList.hidden = true;
         sidebarDetail.hidden = false;
 
-        document.querySelectorAll('.branch-item.is-active').forEach(el => {
+        document.querySelectorAll('.branch-item.is-active').forEach(function (el) {
             el.classList.remove('is-active');
         });
         const activeItem = branchesListEl.querySelector(
-            `.branch-item[data-branch-id="${branch.id}"]`
+            '.branch-item[data-branch-id="' + branch.id + '"]'
         );
         if (activeItem) {
             activeItem.classList.add('is-active');
@@ -1079,7 +1388,7 @@
     // ==================== ФОКУС ====================
 
     function focusBranch(branchId) {
-        const branch = branches.find(b => b.id === branchId);
+        const branch = branches.find(function (b) { return b.id === branchId; });
         if (!branch) return;
 
         showDetail(branch);
@@ -1129,13 +1438,12 @@
                 [branch.latitude, branch.longitude],
                 {
                     hintContent: esc(branch.address),
-                    balloonContent: `
-                        <div style="font-family: Arial, sans-serif; font-size: 13px;">
-                            <strong>${esc(branch.address)}</strong><br>
-                            ${esc(buildShortSchedule(branch.schedule))}<br>
-                            ${esc(branch.formatted_phone || branch.phone)}
-                        </div>
-                    `,
+                    balloonContent:
+                        '<div style="font-family: Arial, sans-serif; font-size: 13px;">' +
+                            '<strong>' + esc(branch.address) + '</strong><br>' +
+                            esc(buildShortSchedule(branch.schedule)) + '<br>' +
+                            esc(branch.formatted_phone || branch.phone) +
+                        '</div>',
                 },
                 { preset: 'islands#blackIcon' }
             );

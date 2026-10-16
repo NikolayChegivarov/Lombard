@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'app_common',
     'app_prices',
     'app_analytics',
+    'app_carousel',
 ]
 
 

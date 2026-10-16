@@ -1,163 +1,147 @@
 {% extends 'base/base.html' %}
 {% load static %}
 
-{% block title %}Контакты - Ломбард Народный{% endblock %}
+{% block title %}Контакты — Ломбард Народный{% endblock %}
 
 {% block content %}
-<div class="contacts-container">
-    <h1>Контакты</h1>
-    
-    <div class="contact-card">
-        <h2>ООО "Ломбард Народный"</h2>
-
-        <div class="contact-details">
-            <div class="contact-item">
-                <strong>Юридический адрес:</strong>
-                <p>156010, г. Кострома, ул. Самоковская, д.10Б</p>
-            </div>
-
-            <div class="contact-item">
-                <strong>Почтовый адрес:</strong>
-                <p>156010, г. Кострома, ул. Самоковская, д.10Б</p>
-            </div>
-
-            <div class="contact-item">
-                <strong>ОГРН:</strong>
-                <p>1154401006814</p>
-            </div>
-
-            <div class="contact-item">
-                <strong>ИНН:</strong>
-                <p>4401164758</p>
-            </div>
-
-            <div class="contact-item">
-                <strong>КПП:</strong>
-                <p>440101001</p>
-            </div>
-
-            <div class="contact-item">
-                <strong>Электронная почта:</strong>
-                <p><a href="mailto:info@lombardn.ru">info@lombardn.ru</a></p>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
-    .contacts-container {
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
+    /* ============= КОНТАКТЫ ============= */
+    .contacts {
+        max-width: 820px;
+        margin: 40px auto 60px;
+        padding: 0 4px;
     }
 
-    h1 {
-        text-align: center;
-        color: #333;
-        margin-bottom: 30px;
-        font-size: 2.5rem;
+    .contacts__title {
+        font-size: 2em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        margin-bottom: 40px;
     }
 
-    h2 {
-        color: #2c3e50;
-        margin-bottom: 25px;
-        border-bottom: 2px solid #3498db;
-        padding-bottom: 10px;
-        text-align: center;
+    .contacts__subtitle {
+        font-size: 1.15em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        margin-bottom: 28px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e30613;
     }
 
-    .contact-card {
-        background: #f8f9fa;
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-    }
-
-    .contact-details {
+    .contacts__list {
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 22px;
     }
 
-    .contact-item {
-        padding: 15px 0;
-        border-bottom: 1px solid #e9ecef;
+    .contacts__item {
+        padding-bottom: 18px;
+        border-bottom: 1px solid #eeeeee;
     }
 
-    .contact-item:last-child {
+    .contacts__item:last-child {
         border-bottom: none;
+        padding-bottom: 0;
     }
 
-    .contact-item strong {
-        color: #2c3e50;
+    .contacts__label {
         display: block;
-        margin-bottom: 8px;
-        font-size: 1.1rem;
+        font-size: 0.95em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        margin-bottom: 6px;
     }
 
-    .contact-item p {
+    .contacts__value {
         margin: 0;
-        color: #555;
-        font-size: 1.1rem;
+        font-size: 1em;
+        line-height: 1.6;
+        color: #000000;
     }
 
-    .contact-item a {
-        color: #3498db;
+    .contacts__link {
+        color: #e30613;
         text-decoration: none;
         font-weight: 500;
-        font-size: 1.1rem;
+        transition: opacity 0.15s ease;
     }
 
-    .contact-item a:hover {
-        text-decoration: underline;
-        color: #2980b9;
+    .contacts__link:hover {
+        opacity: 0.75;
     }
 
-    /* Адаптивность для мобильных */
-    @media (max-width: 768px) {
-        .contacts-container {
-            padding: 15px;
+    /* ============= АДАПТИВНОСТЬ ============= */
+    @media (max-width: 767px) {
+        .contacts {
+            margin: 24px auto 40px;
         }
 
-        h1 {
-            font-size: 2rem;
-            margin-bottom: 20px;
+        .contacts__title {
+            font-size: 1.6em;
+            margin-bottom: 28px;
         }
 
-        .contact-card {
-            padding: 25px 20px;
+        .contacts__subtitle {
+            font-size: 1.05em;
+            margin-bottom: 22px;
         }
 
-        .contact-item strong {
-            font-size: 1rem;
-        }
-
-        .contact-item p,
-        .contact-item a {
-            font-size: 1rem;
-        }
-
-        .contact-details {
-            gap: 15px;
-        }
-
-        .contact-item {
-            padding: 12px 0;
+        .contacts__list {
+            gap: 18px;
         }
     }
 
     @media (max-width: 480px) {
-        h1 {
-            font-size: 1.8rem;
+        .contacts__title {
+            font-size: 1.4em;
         }
 
-        h2 {
-            font-size: 1.4rem;
-        }
-
-        .contact-card {
-            padding: 20px 15px;
+        .contacts__value {
+            font-size: 0.95em;
         }
     }
 </style>
+
+<div class="contacts">
+    <h1 class="contacts__title">Контакты</h1>
+
+    <h2 class="contacts__subtitle">ООО «Ломбард Народный»</h2>
+
+    <div class="contacts__list">
+        <div class="contacts__item">
+            <span class="contacts__label">Юридический адрес</span>
+            <p class="contacts__value">156010, г. Кострома, ул. Самоковская, д.10Б</p>
+        </div>
+
+        <div class="contacts__item">
+            <span class="contacts__label">Почтовый адрес</span>
+            <p class="contacts__value">156010, г. Кострома, ул. Самоковская, д.10Б</p>
+        </div>
+
+        <div class="contacts__item">
+            <span class="contacts__label">ОГРН</span>
+            <p class="contacts__value">1154401006814</p>
+        </div>
+
+        <div class="contacts__item">
+            <span class="contacts__label">ИНН</span>
+            <p class="contacts__value">4401164758</p>
+        </div>
+
+        <div class="contacts__item">
+            <span class="contacts__label">КПП</span>
+            <p class="contacts__value">440101001</p>
+        </div>
+
+        <div class="contacts__item">
+            <span class="contacts__label">Электронная почта</span>
+            <p class="contacts__value">
+                <a href="mailto:info@lombardn.ru" class="contacts__link">info@lombardn.ru</a>
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}

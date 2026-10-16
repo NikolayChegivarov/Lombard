@@ -1,10 +1,10 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Ломбард Народный{% endblock %}</title>
-    {% load static %}
 
     <style>
         html {
@@ -31,9 +31,9 @@
             background-color: #ffffff;
             border-bottom: 1px solid #dee2e6;
             padding: 0;
-            position: sticky;   /* 👈 прилипает при скролле */
-            top: 0;             /* 👈 к верхнему краю окна */
-            z-index: 1000;      /* 👈 чтобы быть выше контента */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
 
         .header-inner {
@@ -166,6 +166,70 @@
         .city-dropdown__item.is-active {
             font-weight: 700;
             background: #f0f0f0;
+        }
+
+        /* ===== ВЫПАДАЮЩЕЕ МЕНЮ (МЕНЮ) ===== */
+        .menu-selector {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-selector__btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .menu-selector__arrow {
+            font-size: 0.7em;
+            transition: transform 0.2s ease;
+        }
+
+        .menu-selector.is-open .menu-selector__arrow {
+            transform: rotate(180deg);
+        }
+
+        .menu-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 260px;
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            padding: 6px;
+            z-index: 1000;
+
+            /* Плавное появление */
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+        }
+
+        .menu-selector.is-open .menu-dropdown {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .menu-dropdown__item {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-family: inherit;
+            font-size: 0.95em;
+            color: #000000;
+            white-space: nowrap;
+            transition: background-color 0.15s ease;
+        }
+
+        .menu-dropdown__item:hover {
+            background: #f5f5f5;
         }
 
         .main-content {
@@ -331,6 +395,20 @@
                 left: 0;
                 transform: none;
             }
+
+            .menu-selector {
+                flex: 1;
+            }
+
+            .menu-selector__btn {
+                width: 100%;
+            }
+
+            .menu-dropdown {
+                left: 0;
+                right: 0;
+                min-width: auto;
+            }
         }
 
         @media (max-width: 500px) {
@@ -374,7 +452,44 @@
 
             <!-- Кнопки навигации -->
             <nav class="nav-buttons">
-                <button class="nav-btn" type="button">Меню</button>
+                <!-- ===== ВЫПАДАЮЩЕЕ МЕНЮ ===== -->
+                <div class="menu-selector" id="menuSelector">
+                    <button class="nav-btn menu-selector__btn"
+                            type="button"
+                            aria-haspopup="true"
+                            aria-expanded="false">
+                        Меню
+                        <span class="menu-selector__arrow">▼</span>
+                    </button>
+
+                    <div class="menu-dropdown" id="menuDropdown" role="menu">
+                        <a href="{% url 'app_common:conditions' %}"
+                           class="menu-dropdown__item"
+                           role="menuitem">
+                            Условия сотрудничества
+                        </a>
+                        <a href="{% url 'app_common:news' %}"
+                           class="menu-dropdown__item"
+                           role="menuitem">
+                            Новости
+                        </a>
+                        <a href="{% url 'app_common:questions' %}"
+                           class="menu-dropdown__item"
+                           role="menuitem">
+                            Вопросы и ответы
+                        </a>
+                        <a href="{% url 'app_common:contacts' %}"
+                           class="menu-dropdown__item"
+                           role="menuitem">
+                            Контакты
+                        </a>
+                        <a href="{% url 'app_common:about_us' %}"
+                           class="menu-dropdown__item"
+                           role="menuitem">
+                            О нас
+                        </a>
+                    </div>
+                </div>
 
                 <!-- Выбор города -->
                 <div class="city-selector" id="citySelector" role="button" tabindex="0" aria-haspopup="true">
@@ -484,6 +599,35 @@
             }
 
             return response.json();
+        }
+
+        // ================= Dropdown меню =================
+        const menuSelector = document.getElementById('menuSelector');
+        const menuBtn = menuSelector ? menuSelector.querySelector('.menu-selector__btn') : null;
+
+        if (menuSelector && menuBtn) {
+            menuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                menuSelector.classList.toggle('is-open');
+                const expanded = menuSelector.classList.contains('is-open');
+                menuBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+            });
+
+            // Закрытие по клику вне
+            document.addEventListener('click', function(e) {
+                if (!menuSelector.contains(e.target)) {
+                    menuSelector.classList.remove('is-open');
+                    menuBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Закрытие по Esc
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    menuSelector.classList.remove('is-open');
+                    menuBtn.setAttribute('aria-expanded', 'false');
+                }
+            });
         }
 
         // ================= Dropdown выбора города =================

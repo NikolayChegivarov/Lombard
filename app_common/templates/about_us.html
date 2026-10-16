@@ -1,0 +1,319 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}О нас — Ломбард Народный{% endblock %}
+
+{% block content %}
+<style>
+    /* ============= О НАС ============= */
+    .about {
+        max-width: 820px;
+        margin: 40px auto 60px;
+        padding: 0 4px;
+    }
+
+    .about__title {
+        font-size: 2em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        margin-bottom: 18px;
+    }
+
+    .about__lead {
+        font-size: 1.05em;
+        line-height: 1.7;
+        color: #000000;
+        margin-bottom: 40px;
+    }
+
+    /* ===== Статистика ===== */
+    .about__stats {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        margin-bottom: 44px;
+    }
+
+    .about__stats-count {
+        font-size: 2.6em;
+        font-weight: 700;
+        line-height: 1;
+        color: #e30613;
+        letter-spacing: 0.5px;
+    }
+
+    .about__stats-label {
+        font-size: 1em;
+        color: #000000;
+    }
+
+    /* ===== Секции ===== */
+    .about__section {
+        margin-bottom: 36px;
+    }
+
+    .about__section-title {
+        font-size: 1.15em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        margin-bottom: 14px;
+    }
+
+    .about__text {
+        font-size: 1em;
+        line-height: 1.7;
+        color: #000000;
+        margin-bottom: 10px;
+    }
+
+    .about__text:last-child {
+        margin-bottom: 0;
+    }
+
+    /* ===== Списки (принципы, преимущества) ===== */
+    .about__list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .about__list-item {
+        position: relative;
+        padding-left: 22px;
+        margin-bottom: 16px;
+        font-size: 1em;
+        line-height: 1.7;
+        color: #000000;
+    }
+
+    .about__list-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0.65em;
+        width: 8px;
+        height: 2px;
+        background: #e30613;
+    }
+
+    .about__list-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .about__list-item strong {
+        font-weight: 700;
+    }
+
+    /* ===== CTA-блок ===== */
+    .about__cta {
+        margin-top: 48px;
+        padding-top: 32px;
+        border-top: 1px solid #eeeeee;
+    }
+
+    .about__cta-title {
+        font-size: 1.15em;
+        font-weight: 700;
+        color: #000000;
+        letter-spacing: 0.3px;
+        margin-bottom: 14px;
+    }
+
+    .about__cta-text {
+        font-size: 1em;
+        line-height: 1.7;
+        color: #000000;
+        margin-bottom: 22px;
+    }
+
+    .about__cta-button {
+        display: inline-block;
+        padding: 14px 28px;
+        background: #e30613;
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 1em;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-decoration: none;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .about__cta-button:hover {
+        background: #c00511;
+    }
+
+    /* ============= АДАПТИВНОСТЬ ============= */
+    @media (max-width: 767px) {
+        .about {
+            margin: 24px auto 40px;
+        }
+
+        .about__title {
+            font-size: 1.6em;
+            margin-bottom: 14px;
+        }
+
+        .about__lead {
+            font-size: 1em;
+            margin-bottom: 28px;
+        }
+
+        .about__stats {
+            margin-bottom: 32px;
+        }
+
+        .about__stats-count {
+            font-size: 2em;
+        }
+
+        .about__section {
+            margin-bottom: 28px;
+        }
+
+        .about__section-title {
+            font-size: 1.05em;
+        }
+
+        .about__cta {
+            margin-top: 36px;
+            padding-top: 24px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .about__title {
+            font-size: 1.4em;
+        }
+
+        .about__text,
+        .about__list-item {
+            font-size: 0.95em;
+        }
+
+        .about__cta-button {
+            display: block;
+            text-align: center;
+            padding: 12px 20px;
+        }
+    }
+</style>
+
+<div class="about">
+    <h1 class="about__title">О нас</h1>
+
+    <p class="about__lead">
+        Мы — современный ломбард, который переосмыслил традиционный подход.
+        Наша цель — не просто оценить и принять ваше имущество, а стать для вас
+        быстрым и понятным финансовым решением в сложной ситуации.
+    </p>
+
+    <div class="about__stats">
+        <div class="about__stats-count" id="aboutStatsCount">{{ active_branches_count }}+</div>
+        <div class="about__stats-label">филиалов по России</div>
+    </div>
+
+    <div class="about__section">
+        <h2 class="about__section-title">Для тех, кому нужны деньги</h2>
+        <p class="about__text">
+            Мы предлагаем честную оценку, максимально высокий процент от стоимости залога
+            и прозрачные условия. Получите деньги за 15 минут без справок о доходах
+            и кредитных историй.
+        </p>
+        <p class="about__text">
+            Ваши вещи для нас — не просто товар, а ответственность. Мы обеспечиваем
+            их полную сохранность на время действия договора.
+        </p>
+    </div>
+
+    <div class="about__section">
+        <h2 class="about__section-title">Наши принципы</h2>
+        <ul class="about__list">
+            <li class="about__list-item">
+                <strong>Конфиденциальность.</strong>
+                Все сделки строго конфиденциальны. Мы гарантируем полную приватность ваших операций.
+            </li>
+            <li class="about__list-item">
+                <strong>Профессионализм.</strong>
+                Оценку проводят эксперты с многолетним опытом работы с драгоценными металлами
+                и ювелирными изделиями.
+            </li>
+            <li class="about__list-item">
+                <strong>Безопасность.</strong>
+                Современная система охраны и видеонаблюдения обеспечивает сохранность вашего имущества.
+            </li>
+            <li class="about__list-item">
+                <strong>Уважение.</strong>
+                Мы с пониманием относимся к ситуации каждого клиента и создаем комфортные
+                условия сотрудничества.
+            </li>
+        </ul>
+    </div>
+
+    <div class="about__section">
+        <h2 class="about__section-title">Наши преимущества</h2>
+        <ul class="about__list">
+            <li class="about__list-item">
+                <strong>Мгновенная выдача наличных средств</strong> — получите деньги
+                в течение 15 минут после оценки.
+            </li>
+            <li class="about__list-item">
+                <strong>Справедливая рыночная оценка</strong> — работаем открыто и честно,
+                без занижения стоимости.
+            </li>
+            <li class="about__list-item">
+                <strong>Гарантия выкупа</strong> — вы всегда можете вернуть свою вещь
+                в оговоренный срок.
+            </li>
+            <li class="about__list-item">
+                <strong>Прозрачный договор</strong> — никаких скрытых комиссий
+                и дополнительных платежей.
+            </li>
+            <li class="about__list-item">
+                <strong>Опытные оценщики</strong> — специалисты с сертификатами
+                и многолетним стажем.
+            </li>
+            <li class="about__list-item">
+                <strong>Удобные условия хранения</strong> — современные сейфы
+                и система климат-контроля.
+            </li>
+        </ul>
+    </div>
+
+    <div class="about__cta">
+        <h2 class="about__cta-title">Готовы получить деньги уже сегодня?</h2>
+        <p class="about__cta-text">
+            Приезжайте в любой из наших {{ active_branches_count }} филиалов по России.
+            Наши специалисты проведут бесплатную оценку и предложат лучшие условия.
+        </p>
+        <a href="/#branches" class="about__cta-button">Найти ближайший филиал</a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const counter = document.getElementById('aboutStatsCount');
+        if (!counter) return;
+
+        const target = parseInt(counter.textContent, 10);
+        if (isNaN(target) || target <= 0) return;
+
+        let current = 0;
+        const step = Math.max(1, Math.ceil(target / 50));
+
+        const timer = setInterval(function () {
+            current += step;
+            if (current >= target) {
+                current = target;
+                clearInterval(timer);
+            }
+            counter.textContent = current + '+';
+        }, 30);
+    });
+</script>
+{% endblock %}

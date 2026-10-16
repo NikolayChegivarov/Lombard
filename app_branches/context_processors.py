@@ -42,9 +42,12 @@ def city_context(request):
     # Нужно ли показать модалку подтверждения города
     need_city_confirm = request.COOKIES.get('city_confirmed') != '1'
 
+    active_branches_count = Branch.objects.filter(is_active=True).count()
+
     return {
         'selected_city': selected_city,
         'all_cities': all_cities,
         'need_city_confirm': need_city_confirm,
         'YANDEX_MAPS_API_KEY': settings.API_KEY_YANDEX_MAP,
+        'active_branches_count': active_branches_count,
     }

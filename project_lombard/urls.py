@@ -9,10 +9,14 @@ urlpatterns = [
     # 👇 API-маршруты приложения app_branches
     path('', include('app_branches.urls', namespace='app_branches')),
 
+    # 👇 API цен на металлы (публичный калькулятор ломбарда)
     path('', include('app_prices.urls', namespace='app_prices')),
 
+    # Общие страницы (условия, новости, FAQ, контакты, о нас)
+    path('', include('app_common.urls', namespace='app_common')),
+
     # 👇 Временно закомментированы (views ещё не готовы)
-    # path('', include('app_common.urls', namespace='app_common')),
+
     # path('', include('app_accounts.urls', namespace='app_accounts')),
 
     # 👇 Главная и другие страницы app_core
