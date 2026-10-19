@@ -101,6 +101,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'app_branches.context_processors.city_context',
+                'app_common.context_processors.news_context',
             ],
         },
     },

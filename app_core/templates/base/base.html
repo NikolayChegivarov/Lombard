@@ -468,11 +468,13 @@
                            role="menuitem">
                             Условия сотрудничества
                         </a>
+                        {% if has_news %}
                         <a href="{% url 'app_common:news' %}"
                            class="menu-dropdown__item"
                            role="menuitem">
                             Новости
                         </a>
+                        {% endif %}
                         <a href="{% url 'app_common:questions' %}"
                            class="menu-dropdown__item"
                            role="menuitem">
