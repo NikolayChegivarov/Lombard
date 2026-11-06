@@ -1,5 +1,7 @@
 .venv
 .env
+*.log
+logs/
 /.idea/
 __pycache__/
 DRAFT.md
