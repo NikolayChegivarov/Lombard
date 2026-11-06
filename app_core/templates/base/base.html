@@ -511,7 +511,11 @@
                 </div>
 
                 <a href="/#branches" class="nav-btn">Филиалы</a>
-                <button class="nav-btn nav-btn-account" type="button">Личный кабинет</button>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'app_accounts:dashboard' %}" class="nav-btn nav-btn-account">Личный кабинет</a>
+                {% else %}
+                    <a href="{% url 'app_accounts:login' %}" class="nav-btn nav-btn-account">Личный кабинет</a>
+                {% endif %}
             </nav>
         </div>
     </header>

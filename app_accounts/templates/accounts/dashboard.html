@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Личный кабинет — Ломбард Народный{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .account-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .account-title {
+        font-size: 1.8em;
+        font-weight: 700;
+    }
+    .account-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 1em;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 0.15s ease, color 0.15s ease;
+    }
+    .btn--primary {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+    }
+    .btn--primary:hover { background: #222; }
+    .btn--outline {
+        background: #fff;
+        color: #000;
+        border-color: #000;
+    }
+    .btn--outline:hover { background: #f5f5f5; }
+
+    .alert {
+        padding: 14px 18px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        font-size: 0.95em;
+    }
+    .alert--error { background: #fdecea; color: #8a1c1c; border: 1px solid #f5c2c0; }
+    .alert--info  { background: #eef4fb; color: #1c3d66; border: 1px solid #c2d6ef; }
+
+    .ticket-card {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .ticket-card__head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #eee;
+    }
+    .ticket-card__number {
+        font-size: 1.15em;
+        font-weight: 700;
+    }
+    .ticket-card__status {
+        font-size: 0.85em;
+        font-weight: 600;
+        padding: 4px 12px;
+        border-radius: 20px;
+        background: #e6f4ea;
+        color: #1e6b3a;
+    }
+    .ticket-card__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+    }
+    .ticket-card__label {
+        font-size: 0.8em;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .ticket-card__value {
+        font-size: 1.1em;
+        font-weight: 600;
+    }
+    .ticket-card__value--accent { color: #b00020; }
+
+    .schedule {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px dashed #ddd;
+    }
+    .schedule__title {
+        font-size: 0.9em;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .schedule__row {
+        display: flex;
+        justify-content: space-between;
+        padding: 6px 0;
+        font-size: 0.95em;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .schedule__row:last-child { border-bottom: none; }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        background: #fafafa;
+        border-radius: 12px;
+        color: #666;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-header">
+    <h1 class="account-title">Личный кабинет</h1>
+    <div class="account-actions">
+        <a href="{% url 'app_accounts:closed_tickets' %}" class="btn btn--outline">
+            Закрытые залоговые билеты
+        </a>
+        <form method="post" action="{% url 'app_accounts:logout' %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn--primary">Выйти</button>
+        </form>
+    </div>
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert--{% if message.tags == 'error' %}error{% else %}info{% endif %}">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+{% if error %}
+    <div class="alert alert--error">
+        {{ error }}
+        <div style="margin-top: 12px;">
+            <a href="{% url 'app_accounts:dashboard' %}" class="btn btn--outline">Повторить</a>
+        </div>
+    </div>
+{% endif %}
+
+{% if not error %}
+    {% if tickets %}
+        {% for ticket in tickets %}
+        <div class="ticket-card">
+            <div class="ticket-card__head">
+                <span class="ticket-card__number">Залоговый билет № {{ ticket.ticket_number }}</span>
+                <span class="ticket-card__status">Открыт</span>
+            </div>
+            <div class="ticket-card__grid">
+                <div>
+                    <div class="ticket-card__label">Дата выдачи</div>
+                    <div class="ticket-card__value">{{ ticket.issue_date|date:"d.m.Y"|default:"—" }}</div>
+                </div>
+                <div>
+                    <div class="ticket-card__label">Сумма займа</div>
+                    <div class="ticket-card__value">{{ ticket.loan_amount|default:"—" }} ₽</div>
+                </div>
+                <div>
+                    <div class="ticket-card__label">Оценка залога</div>
+                    <div class="ticket-card__value">{{ ticket.collateral_value|default:"—" }} ₽</div>
+                </div>
+                <div>
+                    <div class="ticket-card__label">Текущий долг</div>
+                    <div class="ticket-card__value ticket-card__value--accent">
+                        {{ ticket.current_debt|default:"—" }} ₽
+                    </div>
+                </div>
+                <div>
+                    <div class="ticket-card__label">Проценты</div>
+                    <div class="ticket-card__value">{{ ticket.current_percent|default:"—" }} ₽</div>
+                </div>
+            </div>
+
+            {% if ticket.payment_schedule %}
+            <div class="schedule">
+                <div class="schedule__title">График платежей</div>
+                {% for row in ticket.payment_schedule %}
+                <div class="schedule__row">
+                    <span>{{ row.date|date:"d.m.Y"|default:"—" }}</span>
+                    <span>{{ row.amount|default:"—" }} ₽</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <p>У вас нет открытых залоговых билетов.</p>
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
