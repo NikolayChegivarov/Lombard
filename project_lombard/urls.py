@@ -15,6 +15,9 @@ urlpatterns = [
     # Общие страницы (условия, новости, FAQ, контакты, о нас)
     path('', include('app_common.urls', namespace='app_common')),
 
+    # Личный кабинет
+    path('account/', include('app_accounts.urls')),
+
     # 👇 Временно закомментированы (views ещё не готовы)
 
     # path('', include('app_accounts.urls', namespace='app_accounts')),

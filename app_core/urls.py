@@ -1,6 +1,8 @@
 from django.urls import path
 from .views.base import index, prices_view, questions_answers_view, news_view, contacts_view, about_us
 from .views import conditions
+from .views.privacy_policy import PrivacyPolicyView
+
 
 urlpatterns = [
     path('', index, name='index'),
@@ -10,4 +12,5 @@ urlpatterns = [
     path('news/', news_view, name='news'),
     path('contacts/', contacts_view, name='contacts'),
     path('about/', about_us, name='about_us'),
+    path('privacy-policy/', PrivacyPolicyView.as_view(), name='privacy_policy'),
 ]

@@ -15,14 +15,15 @@ Views приложения accounts.
   - Логи — без PII (только phone_hash[:8] и id_1c).
 """
 import logging
+import uuid
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.shortcuts import redirect, render
-from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -53,8 +54,6 @@ def _get_or_create_user(id_1c: str, consent: bool) -> User:
     - Profile.id_1c = GUID из 1С.
     - consent_pd_given/date — из сессии.
     """
-    import uuid
-
     with transaction.atomic():
         profile = (
             Profile.objects
@@ -69,7 +68,9 @@ def _get_or_create_user(id_1c: str, consent: bool) -> User:
                 profile.consent_pd_given = True
                 profile.consent_pd_date = timezone.now()
             profile.last_sync_at = timezone.now()
-            profile.save(update_fields=['consent_pd_given', 'consent_pd_date', 'last_sync_at'])
+            profile.save(update_fields=[
+                'consent_pd_given', 'consent_pd_date', 'last_sync_at',
+            ])
             return profile.user
 
         # Первый вход — создаём
@@ -91,6 +92,14 @@ def _clear_auth_session(request):
     """Убирает временные ключи входа из сессии."""
     for key in (SESSION_PHONE, SESSION_ID_1C, SESSION_CONSENT):
         request.session.pop(key, None)
+
+
+def _render_login(request, form):
+    """Хелпер: рендер login.html с обязательным privacy_policy_url."""
+    return render(request, 'accounts/login.html', {
+        'form': form,
+        'privacy_policy_url': settings.PRIVACY_POLICY_URL,
+    })
 
 
 # ============================================================
@@ -117,7 +126,7 @@ def login_view(request):
                 request,
                 'Слишком много попыток. Попробуйте позже или обратитесь в филиал.'
             )
-            return render(request, 'accounts/login.html', {'form': form})
+            return _render_login(request, form)
 
         # 2. Лимиты отправки SMS (60 сек, 5/час)
         can_send, reason = utils.can_send_sms(phone)
@@ -126,7 +135,7 @@ def login_view(request):
                 messages.warning(request, 'SMS уже отправлено. Подождите минуту.')
             elif reason == 'hour_limit_exceeded':
                 messages.error(request, 'Превышен лимит SMS на час. Попробуйте позже.')
-            return render(request, 'accounts/login.html', {'form': form})
+            return _render_login(request, form)
 
         # 3. Проверка в 1С
         client = OneCClient()
@@ -135,7 +144,7 @@ def login_view(request):
         except OneCUnavailable:
             utils.register_failed_sms_request(phone)
             messages.error(request, 'Данные временно недоступны, попробуйте позже.')
-            return render(request, 'accounts/login.html', {'form': form})
+            return _render_login(request, form)
 
         if not result.found:
             utils.register_failed_sms_request(phone)
@@ -146,7 +155,7 @@ def login_view(request):
                     request,
                     'Мы не нашли ваш номер телефона. Обратитесь в наш филиал.'
                 )
-            return render(request, 'accounts/login.html', {'form': form})
+            return _render_login(request, form)
 
         # 4. Клиент найден — генерируем и отправляем код
         code = utils.generate_sms_code()
@@ -155,7 +164,7 @@ def login_view(request):
         except SmsError:
             logger.exception('SMS send failed for hash=%s', utils.hash_phone(phone)[:8])
             messages.error(request, 'Не удалось отправить SMS. Попробуйте позже.')
-            return render(request, 'accounts/login.html', {'form': form})
+            return _render_login(request, form)
 
         # 5. Сохраняем код в Redis и данные в сессию
         utils.set_sms_code(phone, code)
@@ -168,7 +177,7 @@ def login_view(request):
 
         return redirect('app_accounts:verify_code')
 
-    return render(request, 'accounts/login.html', {'form': form})
+    return _render_login(request, form)
 
 
 # ============================================================
@@ -306,7 +315,9 @@ def closed_tickets_view(request):
     error = None
 
     try:
-        result = client.get_closed_tickets(str(profile.id_1c), page=page, page_size=page_size)
+        result = client.get_closed_tickets(
+            str(profile.id_1c), page=page, page_size=page_size
+        )
         tickets = result.tickets
         total = result.total
         profile.last_sync_at = timezone.now()

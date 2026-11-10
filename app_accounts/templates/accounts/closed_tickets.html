@@ -1,0 +1,167 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Закрытые билеты — Ломбард Народный{% endblock %}
+
+{% block extrastyle %}
+<style>
+    .account-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+    .account-title { font-size: 1.8em; font-weight: 700; }
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-family: inherit;
+        font-size: 1em;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+    .btn--primary { background: #000; color: #fff; border-color: #000; }
+    .btn--primary:hover { background: #222; }
+    .btn--outline { background: #fff; color: #000; border-color: #000; }
+    .btn--outline:hover { background: #f5f5f5; }
+
+    .alert {
+        padding: 14px 18px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+    }
+    .alert--error { background: #fdecea; color: #8a1c1c; border: 1px solid #f5c2c0; }
+
+    .tickets-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .tickets-table th,
+    .tickets-table td {
+        padding: 12px 14px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+        font-size: 0.95em;
+    }
+    .tickets-table th {
+        background: #f7f7f7;
+        font-weight: 700;
+        font-size: 0.85em;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #444;
+    }
+    .tickets-table tr:last-child td { border-bottom: none; }
+    .tickets-table td.num { text-align: right; white-space: nowrap; }
+
+    .empty-state {
+        text-align: center;
+        padding: 48px 20px;
+        background: #fafafa;
+        border-radius: 12px;
+        color: #666;
+    }
+
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+    .pagination a,
+    .pagination span {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.95em;
+        border: 1px solid #ccc;
+        color: #000;
+    }
+    .pagination a:hover { background: #f5f5f5; }
+    .pagination .current {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+    }
+    .pagination .disabled { color: #aaa; border-color: #eee; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="account-header">
+    <h1 class="account-title">Закрытые залоговые билеты</h1>
+    <a href="{% url 'app_accounts:dashboard' %}" class="btn btn--outline">← В личный кабинет</a>
+</div>
+
+{% if error %}
+    <div class="alert alert--error">
+        {{ error }}
+        <div style="margin-top: 12px;">
+            <a href="{% url 'app_accounts:closed_tickets' %}?page={{ page }}" class="btn btn--outline">Повторить</a>
+        </div>
+    </div>
+{% endif %}
+
+{% if not error %}
+    {% if tickets %}
+        <table class="tickets-table">
+            <thead>
+                <tr>
+                    <th>№ билета</th>
+                    <th>Дата выдачи</th>
+                    <th>Дата закрытия</th>
+                    <th style="text-align:right;">Сумма займа</th>
+                    <th style="text-align:right;">Сумма погашения</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td>{{ ticket.ticket_number }}</td>
+                    <td>{{ ticket.issue_date|date:"d.m.Y"|default:"—" }}</td>
+                    <td>{{ ticket.close_date|date:"d.m.Y"|default:"—" }}</td>
+                    <td class="num">{{ ticket.loan_amount|default:"—" }} ₽</td>
+                    <td class="num">{{ ticket.repayment_amount|default:"—" }} ₽</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if total_pages > 1 %}
+        <div class="pagination">
+            {% if page > 1 %}
+                <a href="?page={{ page|add:-1 }}">← Назад</a>
+            {% else %}
+                <span class="disabled">← Назад</span>
+            {% endif %}
+
+            <span class="current">{{ page }} / {{ total_pages }}</span>
+
+            {% if page < total_pages %}
+                <a href="?page={{ page|add:1 }}">Вперёд →</a>
+            {% else %}
+                <span class="disabled">Вперёд →</span>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            <p>У вас нет закрытых залоговых билетов.</p>
+        </div>
+    {% endif %}
+{% endif %}
+{% endblock %}
